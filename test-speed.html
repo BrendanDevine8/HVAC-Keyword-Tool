@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Test - Company Selection</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h1>🧪 Quick Test - Blog Posts Loading</h1>
+
+<div class="test-section">
+    <h3>Test 1: API Response Time</h3>
+    <p>Testing how fast the API responds...</p>
+    <button onclick="testAPI()">Test API</button>
+    <div id="apiResult"></div>
+</div>
+
+<div class="test-section">
+    <h3>Test 2: Companies List</h3>
+    <p>Testing companies list endpoint...</p>
+    <button onclick="testCompanies()">Test Companies</button>
+    <div id="companiesResult"></div>
+</div>
+
+<div class="test-section">
+    <h3>Test 3: Company Details</h3>
+    <p>Testing individual company with blog posts...</p>
+    <button onclick="testCompanyDetails()">Test Company #1</button>
+    <div id="detailsResult"></div>
+</div>
+
+<p><a href="dashboard.php">← Back to Dashboard</a></p>
+
+<script>
+function testAPI() {
+    const start = performance.now();
+    document.getElementById('apiResult').innerHTML = '⏳ Testing...';
+    
+    fetch('api/company.php')
+        .then(r => r.json())
+        .then(data => {
+            const end = performance.now();
+            const time = (end - start).toFixed(2);
+            
+            document.getElementById('apiResult').innerHTML = `
+                <div class="success">
+                    ✅ API responded in ${time}ms<br>
+                    Found ${data.companies ? data.companies.length : 0} companies
+                </div>
+            `;
+        })
+        .catch(err => {
+            document.getElementById('apiResult').innerHTML = `
+                <div class="error">❌ Error: ${err.message}</div>
+            `;
+        });
+}
+
+function testCompanies() {
+    document.getElementById('companiesResult').innerHTML = '⏳ Testing...';
+    
+    fetch('api/company.php')
+        .then(r => r.json())
+        .then(data => {
+            let html = '<div class="success">✅ Companies loaded:<br>';
+            if (data.companies) {
+                data.companies.forEach(company => {
+                    html += `• ${company.company_name} (${company.post_count} posts)<br>`;
+                });
+            }
+            html += '</div>';
+            document.getElementById('companiesResult').innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('companiesResult').innerHTML = `
+                <div class="error">❌ Error: ${err.message}</div>
+            `;
+        });
+}
+
+function testCompanyDetails() {
+    const start = performance.now();
+    document.getElementById('detailsResult').innerHTML = '⏳ Testing...';
+    
+    fetch('api/company.php?id=1')
+        .then(r => r.json())
+        .then(data => {
+            const end = performance.now();
+            const time = (end - start).toFixed(2);
+            
+            document.getElementById('detailsResult').innerHTML = `
+                <div class="success">
+                    ✅ Company details loaded in ${time}ms<br>
+                    Company: ${data.company ? data.company.company_name : 'Not found'}<br>
+                    Blog Posts: ${data.blog_posts ? data.blog_posts.length : 0}<br>
+                    Total Posts: ${data.post_count || 0}
+                </div>
+            `;
+        })
+        .catch(err => {
+            document.getElementById('detailsResult').innerHTML = `
+                <div class="error">❌ Error: ${err.message}</div>
+            `;
+        });
+}
+</script>
+
+</body>
+</html>

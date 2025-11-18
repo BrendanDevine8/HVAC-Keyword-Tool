@@ -1,0 +1,46 @@
+# Configuration files with sensitive data
+config.php
+
+# Backup files
+*.backup
+*~
+.DS_Store
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+error.log
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Database dumps
+*.sql.gz
+*.sql.bz2
+
+# Environment specific files
+.env
+.env.local
+.env.production
+
+# Node modules (if any)
+node_modules/
+
+# PHP specific
+vendor/
+composer.lock
+
+# System files
+Thumbs.db
+.DS_Store
+
+# Test files that might contain sensitive data
+test-db.php
+test-api.phpapi/test_models.php
