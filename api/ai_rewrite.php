@@ -42,15 +42,16 @@ if ($method === 'POST') {
  */
 function getRewritePrompts() {
     return [
-        'improve' => 'Improve the writing quality, grammar, and flow of this text while maintaining its core message and tone.',
-        'professional' => 'Rewrite this text in a professional, business-appropriate tone suitable for HVAC industry communications.',
-        'casual' => 'Rewrite this text in a casual, friendly tone that feels approachable and conversational.',
-        'technical' => 'Rewrite this text with more technical detail and industry-specific terminology for HVAC professionals.',
-        'simplify' => 'Simplify this text to make it easier to understand for general homeowners and property managers.',
-        'seo' => 'Rewrite this text to be more SEO-friendly while maintaining readability and including relevant HVAC keywords.',
-        'expand' => 'Expand this text with more detail, examples, and comprehensive information while maintaining accuracy.',
-        'shorten' => 'Make this text more concise and to-the-point while preserving all essential information.',
-        'engaging' => 'Rewrite this text to be more engaging, interesting, and compelling for readers.'
+        // All modes except expand/shorten explicitly ask to keep similar length
+        'improve' => 'Improve the writing quality, grammar, and flow of this text while maintaining its core message, tone, and approximately the same length.',
+        'professional' => 'Rewrite this text in a professional, business-appropriate tone suitable for HVAC industry communications, keeping it about the same length.',
+        'casual' => 'Rewrite this text in a casual, friendly tone that feels approachable and conversational, without significantly shortening or lengthening it.',
+        'technical' => 'Rewrite this text with more technical detail and HVAC industry-specific terminology, but keep the overall length roughly similar unless extra detail is clearly needed.',
+        'simplify' => 'Simplify this text to make it easier to understand for general homeowners and property managers, while keeping the overall length roughly similar.',
+        'seo' => 'Rewrite this text to be more SEO-friendly while maintaining readability and including relevant HVAC keywords, but avoid making it much shorter than the original.',
+        'expand' => 'Expand this text with more detail, examples, and comprehensive information while maintaining accuracy. It is fine if the result is significantly longer.',
+        'shorten' => 'Make this text more concise and to-the-point while preserving all essential information. It is fine if the result is significantly shorter.',
+        'engaging' => 'Rewrite this text to be more engaging, interesting, and compelling for readers, while keeping the length roughly similar unless added storytelling clearly helps.'
     ];
 }
 
@@ -111,9 +112,11 @@ function tryClaudeRewrite($text, $prompt) {
         return ['success' => false, 'error' => 'Claude API key not configured'];
     }
     
-    $systemPrompt = "You are an expert content writer specializing in HVAC industry content. You help rewrite and improve content for HVAC businesses. Always maintain accuracy and professionalism while following the user's specific instructions.";
-    
-    $userMessage = $prompt . "\n\nText to rewrite:\n" . $text;
+    $systemPrompt = "You are an expert content writer specializing in HVAC industry content. You help rewrite and improve content for HVAC businesses. Always maintain accuracy and professionalism while following the user's specific instructions. Unless the user explicitly asks to shorten or expand the content, keep the rewritten content approximately the same length as the original (within about ±15%).";
+
+    $userMessage = $prompt
+        . "\n\nImportant: Unless this instruction explicitly says to shorten or expand, keep the rewritten content about the same length as the original (within roughly ±15%)."
+        . "\n\nText to rewrite:\n" . $text;
     
     $data = [
         'model' => 'claude-3-haiku-20240307',

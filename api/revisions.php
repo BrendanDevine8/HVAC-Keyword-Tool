@@ -404,11 +404,11 @@ function createNewRevision($pdo, $post_id, $input, $current_user) {
         $old_word_count = $post['word_count'];
         $new_word_count = str_word_count(strip_tags($new_content));
         $new_version = $post['current_version'] + 1;
-        
+
         // Auto-generate change summary if not provided
         if (empty($change_summary)) {
-            $delta = DeltaEngine::generateDelta($old_content, $new_content);
-            $change_summary = DeltaEngine::getChangeSummary($delta);
+            // Lightweight summary without running the heavy diff engine
+            $change_summary = 'Content updated via live editor';
         }
         
         // Update the main blog post
@@ -425,27 +425,11 @@ function createNewRevision($pdo, $post_id, $input, $current_user) {
         $stmt->execute($update_values);
         
         // Create the revision
-        $delta = DeltaEngine::generateDelta($old_content, $new_content);
         $word_count_delta = $new_word_count - $old_word_count;
-        
-        // Determine if this should be a baseline (every 10 revisions)
-        $is_baseline = ($new_version % 10 === 0);
-        
-        if ($is_baseline) {
-            $stmt = $pdo->prepare("
-                INSERT INTO blog_post_revisions 
-                (post_id, version_number, change_summary, created_by, is_baseline, baseline_content, word_count_delta)
-                VALUES (?, ?, ?, ?, 1, ?, ?)
-            ");
-            $stmt->execute([$post_id, $new_version, $change_summary, $current_user, $new_content, $word_count_delta]);
-        } else {
-            $stmt = $pdo->prepare("
-                INSERT INTO blog_post_revisions 
-                (post_id, version_number, delta_changes, change_summary, word_count_delta, created_by)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([$post_id, $new_version, json_encode($delta), $change_summary, $word_count_delta, $current_user]);
-        }
+
+        // For now, always store a full baseline to avoid heavy diffing
+        $stmt = $pdo->prepare("\n                INSERT INTO blog_post_revisions \n                (post_id, version_number, change_summary, created_by, is_baseline, baseline_content, word_count_delta)\n                VALUES (?, ?, ?, ?, 1, ?, ?)\n            ");
+        $stmt->execute([$post_id, $new_version, $change_summary, $current_user, $new_content, $word_count_delta]);
         
         $pdo->commit();
         

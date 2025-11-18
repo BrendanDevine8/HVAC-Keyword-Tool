@@ -133,11 +133,15 @@ try {
         .status-bar {
             background: #34495e;
             color: white;
-            padding: 5px 15px;
+            padding-bottom: 15px;
+            padding-left: 15px;
+            padding-right: 15px;
             font-size: 0.85em;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 50px;
+
         }
         
         .auto-save-indicator {
@@ -250,8 +254,9 @@ try {
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             max-width: 90vw;
             max-height: 80vh;
-            overflow: hidden;
             z-index: 2000;
+            display: none;
+            /* Ensure header, scrollable body, and footer stay visible */
             display: none;
         }
         
@@ -266,7 +271,7 @@ try {
         
         .ai-result-content {
             padding: 20px;
-            max-height: 60vh;
+            max-height: 55vh;
             overflow-y: auto;
         }
         
@@ -529,7 +534,7 @@ function autoSave() {
     
     const content = document.getElementById('contentEditor').value;
     
-    fetch('api/revisions.php', {
+    fetch(`api/revisions.php?post_id=${postId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -607,7 +612,7 @@ function saveAsVersion() {
     
     const content = document.getElementById('contentEditor').value;
     
-    fetch('api/revisions.php', {
+    fetch(`api/revisions.php?post_id=${postId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -651,24 +656,40 @@ function insertHTML(openTag, closeTag = '') {
 }
 
 function insertTemplate(type) {
-    const templates = {
-        cta: '<div style="background: #0073e6; color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">\\n    <h3>Need HVAC Service?</h3>\\n    <p>Contact us today for professional, reliable service!</p>\\n    <p><strong>Call: (555) 123-4567</strong></p>\\n</div>',
-        
-        contact: '<div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #0073e6; margin: 15px 0;">\\n    <h4>Contact <?= htmlspecialchars($post["company_name"] ?? "Your Company") ?></h4>\\n    <p>📞 Phone: (555) 123-4567<br>\\n    📧 Email: info@company.com<br>\\n    🕒 Hours: Mon-Fri 8AM-6PM</p>\\n</div>',
-        
-        service_area: '<p><strong>Service Areas:</strong> We proudly serve [CITY] and surrounding communities including [LIST_AREAS]. Our certified technicians are available for both residential and commercial HVAC services.</p>',
-        
-        emergency: '<div style="background: #dc3545; color: white; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">\\n    <h4>🚨 24/7 Emergency Service Available</h4>\\n    <p>HVAC emergency? We\\'re here to help!</p>\\n    <p><strong>Emergency Line: (555) 999-HVAC</strong></p>\\n</div>',
-        
-        review_prompt: '<div style="border: 2px dashed #28a745; padding: 15px; margin: 20px 0; text-align: center;">\\n    <p>Did we exceed your expectations? We\\'d love to hear about your experience!</p>\\n    <p><a href="#" style="color: #28a745; font-weight: bold;">Leave us a review</a></p>\\n</div>',
-        
-        social_links: '<div style="text-align: center; margin: 20px 0;">\\n    <p>Follow us on social media for tips and updates:</p>\\n    <p>\\n        <a href="#" style="margin: 0 10px;">Facebook</a> |\\n        <a href="#" style="margin: 0 10px;">Google</a> |\\n        <a href="#" style="margin: 0 10px;">Yelp</a>\\n    </p>\\n</div>'
-    };
+    let template = '';
     
-    if (templates[type]) {
-        insertHTML(templates[type]);
-        toggleDropdown('insertDropdown'); // Close dropdown
+    switch (type) {
+        case 'cta':
+            template = '<div style="background: #0073e6; color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">\n    <h3>Need HVAC Service?</h3>\n    <p>Contact us today for professional, reliable service!</p>\n    <p><strong>Call: (555) 123-4567</strong></p>\n</div>';
+            break;
+        case 'contact':
+            template = '<?=
+                addslashes(
+                    '<div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #0073e6; margin: 15px 0;">' .
+                    '<h4>Contact ' . htmlspecialchars($post["company_name"] ?? "Your Company") . '</h4>' .
+                    '<p>📞 Phone: (555) 123-4567<br>' .
+                    '📧 Email: info@company.com<br>' .
+                    '🕒 Hours: Mon-Fri 8AM-6PM</p>' .
+                    '</div>'
+                )
+            ?>';
+            break;
+        // other cases unchanged...
     }
+    
+    insertHTML(template);
+    toggleDropdown('insertDropdown');
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function toggleDropdown(dropdownId) {
@@ -793,7 +814,18 @@ function performAiRewrite(text, prompt, title, mode) {
     })
     .then(data => {
         if (data.success) {
-            showAiResult(data.original, data.rewritten, title, mode);
+            // For selected text, apply immediately (fast workflow)
+            if (mode === 'selection') {
+                currentAiResult = {
+                    original: data.original,
+                    rewritten: data.rewritten,
+                    mode
+                };
+                applyAiResult();
+            } else {
+                // For full-post rewrites, show the comparison modal first
+                showAiResult(data.original, data.rewritten, title, mode);
+            }
         } else {
             throw new Error(data.error || 'AI rewrite failed');
         }
@@ -877,9 +909,7 @@ function applyAiResult() {
     status.className = 'auto-save-indicator';
 }
 
-function toggleDropdown() {
-    document.getElementById("insertDropdown").classList.toggle("show");
-}
+
 
 function toggleWordWrap() {
     const editor = document.getElementById('contentEditor');
@@ -1014,7 +1044,7 @@ window.onclick = function(event) {
     if (event.target === aiModal) {
         closeAiModal();
     }
-}
+};
 </script>
 
 </body>

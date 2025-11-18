@@ -194,3 +194,12 @@ For questions, bug reports, or feature requests:
 ---
 
 **Built for HVAC professionals who want to automate their content marketing while maintaining quality and brand consistency.**
+
+
+## Future Features
+UI/UX Polish: The current UI is functional and clear, which is perfect for an internal tool. If this were to become client-facing, investing in a more modern CSS framework or design system could elevate the user experience. Adding more visual cues, like loading spinners for API calls in the admin panel, would improve perceived performance.
+Keyword Opportunity Analysis: The keyword tool is great at finding keywords. The next step would be to help users prioritize them. You could integrate with a third-party API (like Ahrefs, SEMrush, or a lower-cost alternative) to pull in search volume and keyword difficulty metrics. This would allow you to create an "Opportunity Score" (High Volume + Low Difficulty).
+Content Performance Feedback Loop: To make the tool truly intelligent, you could close the loop by tracking content performance.
+Integration: Connect to Google Analytics and Google Search Console APIs.
+Tracking: In the blog_posts table, add columns for views, clicks, avg_position, and ctr.
+Insight: Create a dashboard that shows which AI-generated posts are performing best. This would allow you to identify which keywords, topics, and content structures are driving real traffic, providing data-backed insights to refine future content generation.
