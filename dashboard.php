@@ -145,7 +145,15 @@
 </head>
 <body>
 
-<h1>HVAC Keyword Finder By ZIP Code</h1>
+<div style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #dee2e6;">
+    <h1 style="margin: 0 0 10px 0;">HVAC Keyword Finder By ZIP Code</h1>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="button" class="secondary-btn" onclick="window.location.reload()" style="padding: 5px 10px; font-size: 0.9em;">🏠 Dashboard Home</button>
+        <button type="button" class="secondary-btn" onclick="window.open('admin.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">⚙️ Content Manager</button>
+        <button type="button" class="secondary-btn" onclick="window.open('automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🤖 Automation</button>
+        <button type="button" class="secondary-btn" onclick="window.open('debug_automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🔍 Debug System</button>
+    </div>
+</div>
 
 <!-- Step 1: Company Selection/Registration -->
 <div id="companySection" class="form-section">
@@ -163,7 +171,10 @@
         <div id="companiesList" class="existing-companies">
             <p>Loading companies...</p>
         </div>
-        <button type="button" class="secondary-btn" onclick="showCompanySelection()">Back</button>
+        <div style="margin-top: 15px;">
+            <button type="button" class="secondary-btn" onclick="showCompanySelection()">← Back</button>
+            <button type="button" class="secondary-btn" onclick="goToHomeDashboard()" style="margin-left: 10px;">🏠 Dashboard Home</button>
+        </div>
     </div>
 
     <!-- New Company Form -->
@@ -196,8 +207,11 @@
                 </select>
             </div>
             
-            <button type="button" class="primary-btn" onclick="registerCompany()">Create Company</button>
-            <button type="button" class="secondary-btn" onclick="showCompanySelection()">Cancel</button>
+            <div style="margin-top: 20px;">
+                <button type="button" class="primary-btn" onclick="registerCompany()">Create Company</button>
+                <button type="button" class="secondary-btn" onclick="showCompanySelection()" style="margin-left: 10px;">Cancel</button>
+                <button type="button" class="secondary-btn" onclick="goToHomeDashboard()" style="margin-left: 10px;">🏠 Dashboard Home</button>
+            </div>
         </form>
     </div>
 
@@ -205,7 +219,11 @@
     <div id="selectedCompanyDisplay" class="company-info hidden">
         <h3>✅ Selected Company:</h3>
         <div id="selectedCompanyInfo"></div>
-        <button type="button" class="secondary-btn" onclick="changeCompany()">Change Company</button>
+        <div style="margin: 10px 0;">
+            <button type="button" class="secondary-btn" onclick="changeCompany()">Change Company</button>
+            <button type="button" class="primary-btn" onclick="openAutomationSettings()" style="margin-left: 10px;">🤖 Automation Settings</button>
+            <button type="button" class="secondary-btn" onclick="openAdminPanel()" style="margin-left: 10px;">⚙️ Manage Content</button>
+        </div>
         
         <!-- Blog Posts Section -->
         <div id="companyBlogPosts" style="margin-top: 20px;">
@@ -274,9 +292,13 @@ let debugMode = true;
 // Debug helper function
 function addDebugLog(message) {
     if (!debugMode) return;
-    
+
     const now = new Date().toLocaleTimeString();
-    const debugDiv = document.getElementById('debugInfo');
+    const debugDiv = document.getElementById('debugContent');
+    if (!debugDiv) {
+        console.log(message);
+        return;
+    }
     debugDiv.innerHTML += `[${now}] ${message}<br>`;
     debugDiv.scrollTop = debugDiv.scrollHeight;
     console.log(message);
@@ -321,6 +343,34 @@ function showCompanySelection() {
 
 function changeCompany() {
     addDebugLog('Changing company');
+    selectedCompanyId = null;
+    selectedCompanyData = null;
+    document.getElementById('zipSection').classList.add('hidden');
+    document.getElementById('results').innerHTML = '';
+    showCompanySelection();
+}
+
+function openAutomationSettings() {
+    if (!selectedCompanyId) {
+        alert('No company selected');
+        return;
+    }
+    addDebugLog(`Opening automation settings for company ID: ${selectedCompanyId}`);
+    window.open(`automation.php?company_id=${selectedCompanyId}`, '_blank');
+}
+
+function openAdminPanel() {
+    if (!selectedCompanyId) {
+        alert('No company selected');
+        return;
+    }
+    addDebugLog(`Opening admin panel for company ID: ${selectedCompanyId}`);
+    window.open(`admin.php?company_id=${selectedCompanyId}`, '_blank');
+}
+
+function goToHomeDashboard() {
+    addDebugLog('Returning to dashboard home');
+    // Reset everything and go back to initial state
     selectedCompanyId = null;
     selectedCompanyData = null;
     document.getElementById('zipSection').classList.add('hidden');

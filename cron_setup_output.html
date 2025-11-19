@@ -1,0 +1,50 @@
+<h1>🕒 Cron Job Setup for Automated Blog Posting</h1>
+<h2>Current System Status</h2>
+✅ Queue processor script exists: <code>/Applications/MAMP/htdocs/hvac-tool/queue_processor.php</code><br>
+✅ Logs directory exists: <code>/Applications/MAMP/htdocs/hvac-tool/logs</code><br>
+✅ PHP executable found: <code>/Applications/MAMP/bin/php/php8.2.0/bin/php</code><br>
+<h2>Testing Queue Processor</h2>
+<p>Running a test execution...</p>
+<div style='background: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-family: monospace; white-space: pre-wrap;'>[2025-11-18 22:56:34] [INFO] Queue processor starting...
+[2025-11-18 22:56:34] [INFO] No pending queue items to process
+</div>
+<h2>Cron Job Configuration</h2>
+<p>Choose your automation frequency:</p>
+<h3>Option 1: Every 5 Minutes (Recommended)</h3>
+<p>This will check for pending posts every 5 minutes, which provides good responsiveness while not overloading your server.</p>
+<div style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc; font-family: monospace; margin: 10px 0;'>*/5 * * * * /Applications/MAMP/bin/php/php8.2.0/bin/php /Applications/MAMP/htdocs/hvac-tool/queue_processor.php &gt;&gt; /Applications/MAMP/htdocs/hvac-tool/logs/cron.log 2&gt;&amp;1</div>
+<h3>Option 2: Every Minute (High Frequency)</h3>
+<p>This will check for pending posts every minute. Use this only if you need very fast posting or have high-volume requirements.</p>
+<div style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc; font-family: monospace; margin: 10px 0;'>* * * * * /Applications/MAMP/bin/php/php8.2.0/bin/php /Applications/MAMP/htdocs/hvac-tool/queue_processor.php &gt;&gt; /Applications/MAMP/htdocs/hvac-tool/logs/cron.log 2&gt;&amp;1</div>
+<h2>Setup Instructions</h2>
+<ol>
+<li><strong>Open Terminal</strong></li>
+<li><strong>Edit your crontab:</strong><br><code>crontab -e</code></li>
+<li><strong>Add one of the cron entries above</strong> (copy and paste the entire line)</li>
+<li><strong>Save and exit</strong> (in nano: Ctrl+O, then Ctrl+X)</li>
+<li><strong>Verify it was added:</strong><br><code>crontab -l</code></li>
+</ol>
+<h2>Monitoring and Troubleshooting</h2>
+<h3>View Cron Log</h3>
+<p>Monitor automation activity with:</p>
+<div style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc; font-family: monospace; margin: 10px 0;'>tail -f /Applications/MAMP/htdocs/hvac-tool/logs/cron.log</div>
+<h3>View Queue Processor Logs</h3>
+<div style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc; font-family: monospace; margin: 10px 0;'>tail -f /Applications/MAMP/htdocs/hvac-tool/logs/queue_processor.log</div>
+<h3>Manual Testing</h3>
+<p>Test the queue processor manually:</p>
+<div style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc; font-family: monospace; margin: 10px 0;'>cd /Applications/MAMP/htdocs/hvac-tool<br>/Applications/MAMP/bin/php/php8.2.0/bin/php queue_processor.php</div>
+<h2>Current Crontab</h2>
+<p style='color: orange;'>No crontab entries found. You'll need to add the automation cron job.</p>
+<h2>System Health Check</h2>
+✅ 3 companies have automation enabled<br>
+📋 1 pending queue items ready for processing<br>
+✅ No overdue queue items<br>
+<h2>Important Notes</h2>
+<ul>
+<li>🔒 <strong>Security:</strong> Make sure your Claude API key is secure and not exposed in public repositories</li>
+<li>💰 <strong>API Costs:</strong> Each generated post uses your Claude API quota. Monitor your usage at <a href='https://console.anthropic.com/' target='_blank'>console.anthropic.com</a></li>
+<li>📊 <strong>Rate Limiting:</strong> The queue processor includes a 0.1-second delay between posts to prevent API rate limiting</li>
+<li>🚫 <strong>Error Handling:</strong> Failed posts are marked as 'failed' in the queue and won't retry automatically</li>
+<li>🔄 <strong>Queue Management:</strong> Use the <a href='automation.php'>Automation Settings</a> to manage keywords, ZIP targets, and generate new queue items</li>
+</ul>
+<br><p><a href='dashboard.php'>← Back to Dashboard</a> | <a href='automation.php'>Automation Settings</a> | <a href='debug_automation.php'>Debug System</a></p>

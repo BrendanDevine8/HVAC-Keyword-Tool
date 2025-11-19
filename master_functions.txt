@@ -1,0 +1,44 @@
+MASTER FUNCTIONS MAP & LOGIC REFERENCE
+======================================
+
+CORE CONFIGURATION
+------------------
+config.php              -> DB Credentials, Claude API Key, Constants.
+
+FRONTEND INTERFACES
+-------------------
+dashboard.php           -> Main Hub. JS handles AJAX calls to APIs.
+admin.php               -> CMS view. Lists all posts, word counts, and links to editors.
+live_editor.php         -> WYSIWYG editor with split-screen preview.
+automation.php          -> Settings for frequency, keyword priorities, and ZIP targets.
+
+API ENDPOINTS (The Logic Layer)
+-------------------------------
+api/company.php         -> GET: List companies. POST: Create/Update company.
+api/generate_post.php   -> Core Generator. Input: ZIP+Keyword. Output: Blog Post HTML.
+api/get_keywords.php    -> Scraper. Input: ZIP. Output: JSON list of ranked keywords.
+api/revisions.php       -> Version Control. Handles History, Reverts, and Diffs.
+api/ai_rewrite.php      -> Text Processor. Takes text snippet -> Returns AI rewritten version.
+api/automation.php      -> Settings Saver. Handles adding/removing queue items.
+
+AUTOMATION ENGINE
+-----------------
+queue_processor.php     -> THE WORKER. Checks DB for pending posts, calls Generator, updates Status.
+cron_setup.php          -> Diagnostic. Checks if server permissions and paths are correct for Cron.
+debug_automation.php    -> Visual Debugger. Shows queue health and missing files.
+
+UTILITY LIBRARIES
+-----------------
+includes/delta_engine.php
+    |__ generateDelta() -> Implements Myers Diff Algorithm (Character level).
+    |__ applyDelta()    -> Reconstructs text from a base + delta.
+    |__ validateDelta() -> Ensures data integrity.
+
+DATABASE SCHEMA REFERENCE
+-------------------------
+companies               -> ID, Name, Location, Auto_Settings.
+blog_posts              -> ID, Content, Title, Word_Count.
+blog_post_revisions     -> ID, Post_ID, Delta_JSON (Smart storage).
+auto_posting_queue      -> ID, Status (Pending/Completed), Scheduled_Time.
+auto_posting_keywords   -> ID, Pattern, Priority.
+zip_codes               -> ID, GeoData, Climate_Zone.
