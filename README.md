@@ -407,6 +407,7 @@ For questions, bug reports, or feature requests:
 ## 🔮 Roadmap & Future Features
 
 ### Planned Enhancements
+- **KEyword Performance Analytics**: Pull data from google trends or search volume on keyword searches
 - **Content Performance Analytics**: Integration with Google Analytics/Search Console
 - **Advanced Keyword Intelligence**: Search volume and difficulty metrics
 - **Multi-Language Support**: Spanish and other language content generation

@@ -151,7 +151,7 @@
         <button type="button" class="secondary-btn" onclick="window.location.reload()" style="padding: 5px 10px; font-size: 0.9em;">🏠 Dashboard Home</button>
         <button type="button" class="secondary-btn" onclick="window.open('admin.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">⚙️ Content Manager</button>
         <button type="button" class="secondary-btn" onclick="window.open('automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🤖 Automation</button>
-        <button type="button" class="secondary-btn" onclick="window.open('debug_automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🔍 Debug System</button>
+        <!-- <button type="button" class="secondary-btn" onclick="window.open('debug_automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🔍 Debug System</button> -->
     </div>
 </div>
 
