@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Climate Zone Keyword Comparison</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .comparison { display: flex; gap: 20px; flex-wrap: wrap; }
+        .climate-test { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            flex: 1;
+            min-width: 400px;
+        }
+        .climate-hot { border-color: #ff6b6b; background: #fff5f5; }
+        .climate-cold { border-color: #74c0fc; background: #f0f8ff; }
+        .climate-mixed { border-color: #69db7c; background: #f6fff6; }
+        .top-keywords { margin: 10px 0; }
+        .keyword-score { color: #666; font-size: 0.9em; }
+        .climate-info { background: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+        button { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .loading { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>🌡️ Climate Zone Keyword Test</h1>
+    <p>This page tests whether the keyword algorithm properly prioritizes cooling vs heating based on climate zones.</p>
+
+    <div class="comparison">
+        <!-- New Orleans - Very Hot Humid -->
+        <div class="climate-test climate-hot">
+            <h3>🔥 New Orleans, LA (Very-Hot-Humid)</h3>
+            <div class="climate-info">
+                <strong>ZIP:</strong> 70112 <br>
+                <strong>Expected:</strong> Heavy cooling emphasis, minimal heating
+            </div>
+            <button onclick="testKeywords('70112', 'nola-results')">Test Keywords</button>
+            <div id="nola-results" class="loading">Click to test...</div>
+        </div>
+
+        <!-- Chicago - Cold -->
+        <div class="climate-test climate-cold">
+            <h3>🥶 Chicago, IL (Cold)</h3>
+            <div class="climate-info">
+                <strong>ZIP:</strong> 60601 <br>
+                <strong>Expected:</strong> Heavy heating emphasis in winter
+            </div>
+            <button onclick="testKeywords('60601', 'chicago-results')">Test Keywords</button>
+            <div id="chicago-results" class="loading">Click to test...</div>
+        </div>
+
+        <!-- Phoenix - Hot Dry -->
+        <div class="climate-test climate-hot">
+            <h3>🏜️ Phoenix, AZ (Hot-Dry)</h3>
+            <div class="climate-info">
+                <strong>ZIP:</strong> 85001 <br>
+                <strong>Expected:</strong> Heavy AC emphasis, minimal heating
+            </div>
+            <button onclick="testKeywords('85001', 'phoenix-results')">Test Keywords</button>
+            <div id="phoenix-results" class="loading">Click to test...</div>
+        </div>
+
+        <!-- Atlanta - Mixed Humid -->
+        <div class="climate-test climate-mixed">
+            <h3>🌿 Atlanta, GA (Mixed-Humid)</h3>
+            <div class="climate-info">
+                <strong>ZIP:</strong> 30301 <br>
+                <strong>Expected:</strong> Balanced cooling/heating, seasonal variation
+            </div>
+            <button onclick="testKeywords('30301', 'atlanta-results')">Test Keywords</button>
+            <div id="atlanta-results" class="loading">Click to test...</div>
+        </div>
+    </div>
+
+    <script>
+        async function testKeywords(zip, resultId) {
+            const resultsDiv = document.getElementById(resultId);
+            resultsDiv.innerHTML = '<div class="loading">Loading keywords...</div>';
+
+            try {
+                const response = await fetch(`api/get_keywords.php?zip=${zip}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                // Show climate info and top keywords
+                let html = `
+                    <div class="climate-info">
+                        <strong>Climate Zone:</strong> ${data.climate_zone || 'Unknown'}<br>
+                        <strong>Cooling Priority:</strong> ${data.cooling_priority}<br>
+                        <strong>Heating Priority:</strong> ${data.heating_priority}<br>
+                        <strong>Season:</strong> ${data.current_season}
+                    </div>
+                    
+                    <div class="top-keywords">
+                        <strong>Top 10 Keywords:</strong>
+                `;
+
+                // Show top 10 ranked keywords with scores
+                const topKeywords = data.ranked_keywords.slice(0, 10);
+                topKeywords.forEach((item, index) => {
+                    const keyword = item.keyword;
+                    const score = item.score;
+                    const isHeating = /furnace|heater|heating|heat|warm/i.test(keyword);
+                    const isCooling = /ac|air conditioner|cooling|cool|cold/i.test(keyword);
+                    
+                    let typeIndicator = '';
+                    if (isHeating) typeIndicator = ' 🔥';
+                    if (isCooling) typeIndicator = ' ❄️';
+
+                    html += `<div>${index + 1}. ${keyword}${typeIndicator} <span class="keyword-score">(${score})</span></div>`;
+                });
+
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Network Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -40,9 +40,31 @@ if ($company_id > 0) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Tool - Company Content Manager</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: auto; }
+        :root {
+            --rbmg-midnight: #000b30;
+            --rbmg-purple: #57165b;
+            --rbmg-danger: #ce4033;
+            --rbmg-light: #f1f2f2;
+            --rbmg-gradient: linear-gradient(60deg, #000b30 10%, #57165b 25%, #6f2c23 50%, #ce4033 85%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--rbmg-light);
+            color: var(--rbmg-midnight);
+        }
         select, input { padding: 8px; margin: 5px; }
         .company-card { 
             background: #f9f9f9; 

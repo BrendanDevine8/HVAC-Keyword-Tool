@@ -2,286 +2,519 @@
 // dashboard.php
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Keyword Dashboard</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: auto; }
-        input[type=text], textarea, select { padding: 10px; width: 300px; margin: 5px 0; }
-        textarea { height: 80px; resize: vertical; }
-        select { width: 320px; }
-        button { padding: 10px 20px; cursor: pointer; margin: 10px 5px 10px 0; }
-        .primary-btn { background: #0073e6; color: white; border: none; border-radius: 4px; }
-        .secondary-btn { background: #f8f8f8; color: #333; border: 1px solid #ddd; border-radius: 4px; }
-        .form-section { 
-            background: #f9f9f9; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            padding: 20px; 
-            margin: 20px 0; 
+        :root {
+            --rbmg-midnight: #000b30;
+            --rbmg-purple: #57165b;
+            --rbmg-danger: #ce4033;
+            --rbmg-light: #f1f2f2;
+            --rbmg-gradient: linear-gradient(60deg, #000b30 10%, #57165b 25%, #6f2c23 50%, #ce4033 85%);
         }
-        .section { margin-top: 40px; }
-        .keyword-box, .rank-box {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 6px 0;
-            background: #f8f8f8;
-            border-radius: 4px;
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--rbmg-light);
+            color: var(--rbmg-midnight);
         }
-        .rank-score {
-            float: right;
-            background: #0073e6;
-            color: #fff;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-        a { text-decoration: none; color: #0073e6; font-weight: bold; }
-        h2 { margin-top: 30px; }
-        h3 { margin-top: 20px; }
-        .hidden { display: none; }
-        .company-info {
-            background: #e8f4fd;
-            border: 1px solid #0073e6;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        .form-group {
-            margin: 15px 0;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .existing-companies {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-        .company-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .company-item:hover {
-            background-color: #f0f0f0;
-        }
-        .company-item.selected {
-            background-color: #e8f4fd;
-            border-left: 4px solid #0073e6;
-        }
-        .debug-info {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .blog-post-item {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 12px;
-            margin: 8px 0;
-            transition: background-color 0.2s;
-        }
-        .blog-post-item:hover {
-            background-color: #f8f9fa;
-        }
-        .blog-post-title {
-            font-weight: bold;
-            color: #0073e6;
-            margin-bottom: 5px;
-        }
-        .blog-post-meta {
-            font-size: 0.85em;
-            color: #666;
-            margin-bottom: 8px;
-        }
-        .blog-post-preview {
-            font-size: 0.9em;
-            color: #555;
-            line-height: 1.4;
-        }
-        .blog-posts-container {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 5px;
-        }
-        .post-count-badge {
-            background: #28a745;
+
+        /* Custom Button Styles */
+        .btn-rbmg-primary {
+            background: var(--rbmg-danger);
+            border-color: var(--rbmg-danger);
             color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.8em;
-            margin-left: 8px;
+            font-weight: 500;
         }
+        
+        .btn-rbmg-primary:hover {
+            background: #e14f3f;
+            border-color: #e14f3f;
+            color: white;
+        }
+
+        .btn-rbmg-secondary {
+            background: var(--rbmg-midnight);
+            border-color: var(--rbmg-midnight);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .btn-rbmg-secondary:hover {
+            background: var(--rbmg-purple);
+            border-color: var(--rbmg-purple);
+            color: white;
+        }
+
+        .btn-outline-rbmg {
+            border-color: var(--rbmg-danger);
+            color: var(--rbmg-danger);
+            font-weight: 500;
+        }
+        
+        .btn-outline-rbmg:hover {
+            background: var(--rbmg-danger);
+            border-color: var(--rbmg-danger);
+            color: white;
+        }
+
+        /* Header Gradient */
+        .rbmg-header {
+            background: var(--rbmg-gradient);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .rbmg-header h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        /* Card Styles */
+        .rbmg-card {
+            background: white;
+            border: 2px solid var(--rbmg-danger);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 11, 48, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .rbmg-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .rbmg-card-header {
+            background: linear-gradient(135deg, var(--rbmg-midnight), var(--rbmg-purple));
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 1.25rem;
+            border-bottom: 2px solid var(--rbmg-danger);
+        }
+
+        .rbmg-card-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        /* Company Item Styles */
+        .company-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .company-item:hover {
+            border-color: var(--rbmg-danger);
+            box-shadow: 0 2px 8px rgba(206, 64, 51, 0.15);
+            transform: translateX(5px);
+        }
+
+        .company-item.selected {
+            background: linear-gradient(135deg, rgba(0, 11, 48, 0.05), rgba(206, 64, 51, 0.05));
+            border-color: var(--rbmg-danger);
+            border-left: 4px solid var(--rbmg-danger);
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--rbmg-danger);
+            box-shadow: 0 0 0 0.2rem rgba(206, 64, 51, 0.25);
+        }
+
+        /* Keyword Result Styles */
+        .keyword-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .keyword-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--rbmg-danger);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .keyword-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 11, 48, 0.15);
+        }
+
+        .keyword-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .keyword-score {
+            background: var(--rbmg-gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Blog Post Styles */
+        .blog-post-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .blog-post-item:hover {
+            border-color: var(--rbmg-danger);
+            box-shadow: 0 2px 8px rgba(206, 64, 51, 0.15);
+        }
+
+        .blog-post-title a {
+            color: var(--rbmg-midnight);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .blog-post-title a:hover {
+            color: var(--rbmg-danger);
+        }
+
+        /* Navigation Styles */
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(206, 64, 51, 0.2);
+        }
+
+        /* Utility Classes */
+        .text-rbmg-primary {
+            color: var(--rbmg-danger) !important;
+        }
+
+        .text-rbmg-midnight {
+            color: var(--rbmg-midnight) !important;
+        }
+
+        .bg-rbmg-gradient {
+            background: var(--rbmg-gradient) !important;
+        }
+
+        /* Loading Spinner */
         .loading-spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #0073e6;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(206, 64, 51, 0.2);
+            border-top: 3px solid var(--rbmg-danger);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 8px;
+            display: inline-block;
+            margin-right: 0.5rem;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Badge Styles */
+        .badge-rbmg {
+            background: var(--rbmg-danger);
+            color: white;
+        }
+
+        /* Section Headers */
+        .section-header {
+            border-bottom: 3px solid var(--rbmg-danger);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--rbmg-midnight);
+            font-weight: 600;
+        }
+
+        /* Hide class for Bootstrap compatibility */
+        .d-none { display: none !important; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-
-<div style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #dee2e6;">
-    <h1 style="margin: 0 0 10px 0;">HVAC Keyword Finder By ZIP Code</h1>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <button type="button" class="secondary-btn" onclick="window.location.reload()" style="padding: 5px 10px; font-size: 0.9em;">🏠 Dashboard Home</button>
-        <button type="button" class="secondary-btn" onclick="window.open('admin.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">⚙️ Content Manager</button>
-        <button type="button" class="secondary-btn" onclick="window.open('automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🤖 Automation</button>
-        <!-- <button type="button" class="secondary-btn" onclick="window.open('debug_automation.php', '_blank')" style="padding: 5px 10px; font-size: 0.9em;">🔍 Debug System</button> -->
-    </div>
-</div>
-
-<!-- Step 1: Company Selection/Registration -->
-<div id="companySection" class="form-section">
-    <h2>🏢 Step 1: Company Information</h2>
-    
-    <!-- Company Selection -->
-    <div id="companySelection">
-        <button type="button" class="primary-btn" onclick="showNewCompanyForm()">Create New Company</button>
-        <button type="button" class="secondary-btn" onclick="showExistingCompanies()">Select Existing Company</button>
-    </div>
-
-    <!-- Existing Companies List -->
-    <div id="existingCompanies" class="hidden">
-        <h3>Select Your Company:</h3>
-        <div id="companiesList" class="existing-companies">
-            <p>Loading companies...</p>
-        </div>
-        <div style="margin-top: 15px;">
-            <button type="button" class="secondary-btn" onclick="showCompanySelection()">← Back</button>
-            <button type="button" class="secondary-btn" onclick="goToHomeDashboard()" style="margin-left: 10px;">🏠 Dashboard Home</button>
-        </div>
-    </div>
-
-    <!-- New Company Form -->
-    <div id="newCompanyForm" class="hidden">
-        <h3>Create New Company:</h3>
-        <form id="companyForm">
-            <div class="form-group">
-                <label for="companyName">Company Name:</label>
-                <input type="text" id="companyName" name="company_name" placeholder="ABC HVAC Services" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="location">Location:</label>
-                <input type="text" id="location" name="location" placeholder="City, State or Full Address" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="hours">Business Hours:</label>
-                <textarea id="hours" name="hours" placeholder="Mon-Fri: 8AM-6PM&#10;Sat: 9AM-4PM&#10;24/7 Emergency Service Available" required></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="companyType">Company Type:</label>
-                <select id="companyType" name="company_type" required>
-                    <option value="">Select Company Type</option>
-                    <option value="HVAC">HVAC</option>
-                    <option value="Plumbing">Plumbing</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Commercial HVAC">Commercial HVAC</option>
-                </select>
-            </div>
-            
-            <div style="margin-top: 20px;">
-                <button type="button" class="primary-btn" onclick="registerCompany()">Create Company</button>
-                <button type="button" class="secondary-btn" onclick="showCompanySelection()" style="margin-left: 10px;">Cancel</button>
-                <button type="button" class="secondary-btn" onclick="goToHomeDashboard()" style="margin-left: 10px;">🏠 Dashboard Home</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Selected Company Display -->
-    <div id="selectedCompanyDisplay" class="company-info hidden">
-        <h3>✅ Selected Company:</h3>
-        <div id="selectedCompanyInfo"></div>
-        <div style="margin: 10px 0;">
-            <button type="button" class="secondary-btn" onclick="changeCompany()">Change Company</button>
-            <button type="button" class="primary-btn" onclick="openAutomationSettings()" style="margin-left: 10px;">🤖 Automation Settings</button>
-            <button type="button" class="secondary-btn" onclick="openAdminPanel()" style="margin-left: 10px;">⚙️ Manage Content</button>
-        </div>
-        
-        <!-- Blog Posts Section -->
-        <div id="companyBlogPosts" style="margin-top: 20px;">
-            <h4>📝 Generated Blog Posts</h4>
-            <div id="blogPostsList">
-                <p>Loading posts...</p>
+    <!-- Header -->
+    <header class="rbmg-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="bi bi-thermometer-half me-3"></i>
+                        HVAC Keyword Research Tool
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Professional HVAC Content Generation with Local Expertise</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                        <button class="btn btn-outline-light btn-sm" onclick="window.location.reload()">
+                            <i class="bi bi-house-door"></i> Dashboard
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="window.open('admin.php', '_blank')">
+                            <i class="bi bi-gear"></i> Admin
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="window.open('automation.php', '_blank')">
+                            <i class="bi bi-robot"></i> Automation
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+    </header>
+
+    <div class="container">
+        <!-- Company Selection Section -->
+        <div id="companySection" class="mb-4">
+            <div class="rbmg-card">
+                <div class="rbmg-card-header">
+                    <h2><i class="bi bi-building me-2"></i>Step 1: Company Information</h2>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Company Selection Buttons -->
+                    <div id="companySelection" class="text-center">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-rbmg-primary btn-lg w-100 mb-3" onclick="showNewCompanyForm()">
+                                    <i class="bi bi-plus-circle me-2"></i>Create New Company
+                                </button>
+                                <button type="button" class="btn btn-outline-rbmg btn-lg w-100" onclick="showExistingCompanies()">
+                                    <i class="bi bi-list me-2"></i>Select Existing Company
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing Companies List -->
+                    <div id="existingCompanies" class="d-none">
+                        <h3 class="section-header">
+                            <i class="bi bi-buildings me-2"></i>Select Your Company
+                        </h3>
+                        <div id="companiesList" class="mb-3">
+                            <div class="text-center py-4">
+                                <div class="loading-spinner"></div>
+                                <span>Loading companies...</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-rbmg-secondary" onclick="showCompanySelection()">
+                                <i class="bi bi-arrow-left me-1"></i>Back
+                            </button>
+                            <button type="button" class="btn btn-outline-rbmg" onclick="goToHomeDashboard()">
+                                <i class="bi bi-house-door me-1"></i>Dashboard Home
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- New Company Form -->
+                    <div id="newCompanyForm" class="d-none">
+                        <h3 class="section-header">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Company
+                        </h3>
+                        <form id="companyForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="companyName" class="form-label fw-semibold">Company Name</label>
+                                        <input type="text" id="companyName" name="company_name" class="form-control" 
+                                               placeholder="ABC HVAC Services" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label fw-semibold">Location</label>
+                                        <input type="text" id="location" name="location" class="form-control" 
+                                               placeholder="City, State or Full Address" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="companyType" class="form-label fw-semibold">Company Type</label>
+                                        <select id="companyType" name="company_type" class="form-select" required>
+                                            <option value="">Select Company Type</option>
+                                            <option value="HVAC">HVAC</option>
+                                            <option value="Plumbing">Plumbing</option>
+                                            <option value="Electric">Electric</option>
+                                            <option value="Commercial HVAC">Commercial HVAC</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="hours" class="form-label fw-semibold">Business Hours</label>
+                                        <textarea id="hours" name="hours" class="form-control" rows="3" 
+                                                  placeholder="Mon-Fri: 8AM-6PM&#10;Sat: 9AM-4PM&#10;24/7 Emergency Service Available" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-rbmg-primary" onclick="registerCompany()">
+                                    <i class="bi bi-check-circle me-1"></i>Create Company
+                                </button>
+                                <button type="button" class="btn btn-rbmg-secondary" onclick="showCompanySelection()">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-outline-rbmg" onclick="goToHomeDashboard()">
+                                    <i class="bi bi-house-door me-1"></i>Dashboard Home
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Selected Company Display -->
+                    <div id="selectedCompanyDisplay" class="d-none">
+                        <div class="alert alert-success border-0" style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(25, 135, 84, 0.1));">
+                            <h3 class="alert-heading mb-3">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>Company Selected
+                            </h3>
+                            <div id="selectedCompanyInfo" class="mb-3"></div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="changeCompany()">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Change Company
+                                </button>
+                                <button type="button" class="btn btn-rbmg-primary btn-sm" onclick="openAutomationSettings()">
+                                    <i class="bi bi-robot me-1"></i>Automation Settings
+                                </button>
+                                <button type="button" class="btn btn-outline-rbmg btn-sm" onclick="openAdminPanel()">
+                                    <i class="bi bi-gear me-1"></i>Manage Content
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Blog Posts Section -->
+                        <div id="companyBlogPosts" class="mt-4">
+                            <h4 class="section-header">
+                                <i class="bi bi-file-text me-2"></i>Generated Blog Posts
+                            </h4>
+                            <div id="blogPostsList">
+                                <div class="text-center py-4">
+                                    <div class="loading-spinner"></div>
+                                    <span>Loading posts...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZIP Code Search Section -->
+        <div id="zipSection" class="mb-4 d-none">
+            <div class="rbmg-card">
+                <div class="rbmg-card-header">
+                    <h2><i class="bi bi-search me-2"></i>Step 2: ZIP Code Keyword Research</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form id="zipForm" class="row align-items-end">
+                        <div class="col-md-8">
+                            <label for="zip" class="form-label fw-semibold">Enter a 5-Digit ZIP Code</label>
+                            <input type="text" id="zip" name="zip" class="form-control" 
+                                   placeholder="e.g., 90210" pattern="[0-9]{5}" maxlength="5">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-rbmg-primary w-100" onclick="fetchKeywords()">
+                                <i class="bi bi-search me-2"></i>Search Keywords
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyword Results -->
+        <div id="results"></div>
+
+        <!-- Debug Section -->
+        <div id="debugSection" class="mt-5">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bug me-2"></i>Debug Tools
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleDebug()">
+                            Toggle Debug
+                        </button>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="debugContent" class="d-none">
+                        <div class="bg-dark text-light p-3 rounded" style="font-family: monospace; font-size: 0.875rem; max-height: 200px; overflow-y: auto;">
+                            <p class="mb-0 text-muted">Debug console will appear here...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Version History Demo -->
+                    <div class="alert alert-info border-0 mt-3" style="background: linear-gradient(135deg, rgba(13, 202, 240, 0.1), rgba(33, 37, 41, 0.05));">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-clock-history me-2"></i>Version History Features
+                        </h5>
+                        <p>Version history is now integrated into the admin panel! Features include:</p>
+                        <ul class="mb-3">
+                            <li><strong>View Version History:</strong> See all revisions of each blog post</li>
+                            <li><strong>Compare Versions:</strong> View differences between any two versions</li>
+                            <li><strong>Revert Changes:</strong> Restore previous versions of content</li>
+                            <li><strong>Edit with Tracking:</strong> All edits create new tracked versions</li>
+                            <li><strong>User Attribution:</strong> Track who made what changes</li>
+                            <li><strong>Automatic Cleanup:</strong> Old versions pruned after 6 months</li>
+                        </ul>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button onclick="window.open('admin.php', '_blank')" class="btn btn-info btn-sm">
+                                <i class="bi bi-target me-1"></i>Try Version History in Admin Panel
+                            </button>
+                            <button onclick="window.open('automation.php', '_blank')" class="btn btn-success btn-sm">
+                                <i class="bi bi-robot me-1"></i>Configure Automated Posting
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Setup Required -->
+                    <div class="alert alert-warning border-0">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-tools me-2"></i>Database Setup
+                        </h5>
+                        <p class="mb-3">If you see database errors, you may need to set up the automation tables:</p>
+                        <button onclick="window.open('setup_automation.php', '_blank')" class="btn btn-warning btn-sm">
+                            <i class="bi bi-wrench me-1"></i>Run Database Setup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Step 2: ZIP Code Search (hidden until company selected) -->
-<div id="zipSection" class="form-section hidden">
-    <h2>🔍 Step 2: ZIP Code Keyword Research</h2>
-    <form id="zipForm">
-        <input type="text" id="zip" name="zip" placeholder="Enter ZIP code (ex: 90001)">
-        <button type="button" class="primary-btn" onclick="fetchKeywords()">Search Keywords</button>
-    </form>
-</div>
-
-<div id="results" style="margin-top: 20px;"></div>
-
-    <!-- Debug Section (remove this in production) -->
-    <div id="debugSection" class="form-section">
-        <h3>🐞 Debug Tools <button onclick="toggleDebug()">Toggle Debug</button></h3>
-        <div id="debugContent" style="display: none;">
-            <p>Debug console will appear here...</p>
-        </div>
-        
-        <!-- Version History Demo -->
-        <div style="margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
-            <h4>📝 Version History Features</h4>
-            <p>Version history is now integrated into the admin panel! Features include:</p>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-                <li><strong>View Version History:</strong> See all revisions of each blog post</li>
-                <li><strong>Compare Versions:</strong> View differences between any two versions</li>
-                <li><strong>Revert Changes:</strong> Restore previous versions of content</li>
-                <li><strong>Edit with Tracking:</strong> All edits create new tracked versions</li>
-                <li><strong>User Attribution:</strong> Track who made what changes</li>
-                <li><strong>Automatic Cleanup:</strong> Old versions pruned after 6 months</li>
-            </ul>
-            <button onclick="window.open('admin.php', '_blank')" class="btn btn-primary">
-                🎯 Try Version History in Admin Panel
-            </button>
-            <button onclick="window.open('automation.php', '_blank')" class="btn btn-success">
-                🤖 Configure Automated Posting
-            </button>
-        </div>
-        
-        <!-- Setup Required -->
-        <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
-            <h4>⚙️ Database Setup</h4>
-            <p>If you see database errors, you may need to set up the automation tables:</p>
-            <button onclick="window.open('setup_automation.php', '_blank')" class="btn btn-warning">
-                🔧 Run Database Setup
-            </button>
-        </div>
-    </div>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 // Global variables
@@ -306,12 +539,12 @@ function addDebugLog(message) {
 
 function toggleDebug() {
     const debugSection = document.getElementById('debugSection');
-    debugMode = !debugSection.classList.contains('hidden');
+    debugMode = !debugSection.classList.contains('d-none');
     if (debugMode) {
-        debugSection.classList.add('hidden');
+        debugSection.classList.add('d-none');
         debugMode = false;
     } else {
-        debugSection.classList.remove('hidden');
+        debugSection.classList.remove('d-none');
         debugMode = true;
     }
 }
@@ -319,25 +552,25 @@ function toggleDebug() {
 // Company Management Functions
 function showNewCompanyForm() {
     addDebugLog('Showing new company form');
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('newCompanyForm').classList.remove('hidden');
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('newCompanyForm').classList.remove('d-none');
 }
 
 function showExistingCompanies() {
     addDebugLog('Showing existing companies');
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('newCompanyForm').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.remove('hidden');
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('newCompanyForm').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.remove('d-none');
     loadExistingCompanies();
 }
 
 function showCompanySelection() {
     addDebugLog('Showing company selection');
-    document.getElementById('companySelection').classList.remove('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('newCompanyForm').classList.add('hidden');
-    document.getElementById('selectedCompanyDisplay').classList.add('hidden');
+    document.getElementById('companySelection').classList.remove('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('newCompanyForm').classList.add('d-none');
+    document.getElementById('selectedCompanyDisplay').classList.add('d-none');
     clearCompanyForm();
 }
 
@@ -345,7 +578,7 @@ function changeCompany() {
     addDebugLog('Changing company');
     selectedCompanyId = null;
     selectedCompanyData = null;
-    document.getElementById('zipSection').classList.add('hidden');
+    document.getElementById('zipSection').classList.add('d-none');
     document.getElementById('results').innerHTML = '';
     showCompanySelection();
 }
@@ -373,7 +606,7 @@ function goToHomeDashboard() {
     // Reset everything and go back to initial state
     selectedCompanyId = null;
     selectedCompanyData = null;
-    document.getElementById('zipSection').classList.add('hidden');
+    document.getElementById('zipSection').classList.add('d-none');
     document.getElementById('results').innerHTML = '';
     showCompanySelection();
 }
@@ -384,7 +617,12 @@ function clearCompanyForm() {
 
 function loadExistingCompanies() {
     addDebugLog('Loading existing companies...');
-    document.getElementById('companiesList').innerHTML = '<p>Loading companies...</p>';
+    document.getElementById('companiesList').innerHTML = `
+        <div class="text-center py-4">
+            <div class="loading-spinner"></div>
+            <span>Loading companies...</span>
+        </div>
+    `;
     
     fetch('api/company.php')
         .then(r => {
@@ -405,7 +643,13 @@ function loadExistingCompanies() {
 
             let html = '';
             if (!data.companies || data.companies.length === 0) {
-                html = '<p>No companies found. Create a new one first.</p>';
+                html = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-building display-1 opacity-25"></i>
+                        <p class="mt-3">No companies found.</p>
+                        <p class="small">Create a new one to get started!</p>
+                    </div>
+                `;
                 addDebugLog('No companies found in response');
             } else {
                 addDebugLog(`Found ${data.companies.length} companies`);
@@ -414,10 +658,17 @@ function loadExistingCompanies() {
                     // Store company data in a data attribute instead of onclick parameters
                     html += `
                         <div class="company-item" data-company-id="${company.id}" data-company-index="${index}">
-                            <strong>${escapeHtml(company.company_name)}</strong>
-                            <span class="post-count-badge">${company.post_count} posts</span>
-                            <br>
-                            <small>${escapeHtml(company.location)} • ${escapeHtml(company.company_type)}</small>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 text-rbmg-midnight">${escapeHtml(company.company_name)}</h6>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-geo-alt me-1"></i>${escapeHtml(company.location)}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-tag me-1"></i>${escapeHtml(company.company_type)}
+                                    </div>
+                                </div>
+                                <span class="badge badge-rbmg">${company.post_count} posts</span>
+                            </div>
                         </div>
                     `;
                 });
@@ -472,15 +723,28 @@ function selectExistingCompanyFast(companyId, companyIndex) {
     addDebugLog(`Selected company data: ${JSON.stringify(selectedCompanyData)}`);
     
     // Show company info immediately
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('selectedCompanyDisplay').classList.remove('hidden');
-    document.getElementById('zipSection').classList.remove('hidden');
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('selectedCompanyDisplay').classList.remove('d-none');
+    document.getElementById('zipSection').classList.remove('d-none');
     
     document.getElementById('selectedCompanyInfo').innerHTML = `
-        <strong>${escapeHtml(selectedCompanyData.company_name)}</strong><br>
-        📍 ${escapeHtml(selectedCompanyData.location)}<br>
-        🏷️ ${escapeHtml(selectedCompanyData.company_type)}
+        <div class="row">
+            <div class="col-md-8">
+                <h5 class="mb-2 text-rbmg-midnight">${escapeHtml(selectedCompanyData.company_name)}</h5>
+                <p class="mb-1">
+                    <i class="bi bi-geo-alt text-rbmg-primary me-2"></i>
+                    ${escapeHtml(selectedCompanyData.location)}
+                </p>
+                <p class="mb-0">
+                    <i class="bi bi-tag text-rbmg-primary me-2"></i>
+                    ${escapeHtml(selectedCompanyData.company_type)}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="badge bg-success fs-6">Active</span>
+            </div>
+        </div>
     `;
     
     // Show blog posts loading and fetch them
@@ -528,9 +792,9 @@ function selectExistingCompany(companyId, companyIndex) {
     }
     
     // Show loading state immediately
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('selectedCompanyDisplay').classList.remove('hidden');
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('selectedCompanyDisplay').classList.remove('d-none');
     document.getElementById('selectedCompanyInfo').innerHTML = `
         <div style="text-align: center; padding: 20px;">
             <strong>Loading ${company.company_name}...</strong><br>
@@ -608,7 +872,7 @@ function showSelectedCompanyWithPosts(blogPosts, postCount) {
     displayBlogPosts(blogPosts, postCount);
     
     // Show the ZIP section
-    document.getElementById('zipSection').classList.remove('hidden');
+    document.getElementById('zipSection').classList.remove('d-none');
     
     addDebugLog('Company display and ZIP section shown with blog posts');
 }
@@ -622,20 +886,18 @@ function showSelectedCompany() {
         return;
     }
     
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('newCompanyForm').classList.add('hidden');
-    
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('newCompanyForm').classList.add('d-none');
+
     document.getElementById('selectedCompanyInfo').innerHTML = `
         <strong>${escapeHtml(selectedCompanyData.company_name)}</strong><br>
         📍 ${escapeHtml(selectedCompanyData.location)}<br>
         🏷️ ${escapeHtml(selectedCompanyData.company_type)}
     `;
-    
-    document.getElementById('selectedCompanyDisplay').classList.remove('hidden');
-    document.getElementById('zipSection').classList.remove('hidden');
-    
-    // For new companies, show empty blog posts section
+
+    document.getElementById('selectedCompanyDisplay').classList.remove('d-none');
+    document.getElementById('zipSection').classList.remove('d-none');    // For new companies, show empty blog posts section
     displayBlogPosts([], 0);
     
     addDebugLog('Company display and ZIP section shown');
@@ -647,10 +909,23 @@ function displayBlogPosts(posts, totalCount) {
     let html = '';
     
     if (!posts || posts.length === 0) {
-        html = '<p>No blog posts generated yet. Use the ZIP code search below to create your first post!</p>';
+        html = `
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-file-text display-1 opacity-25"></i>
+                <p class="mt-3 mb-0">No blog posts generated yet.</p>
+                <p class="small">Use the ZIP code search below to create your first post!</p>
+            </div>
+        `;
     } else {
-        html += `<p><strong>${totalCount}</strong> total posts (showing latest 10):</p>`;
-        html += '<div class="blog-posts-container">';
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">
+                    <strong>${totalCount}</strong> total posts 
+                    ${totalCount > 10 ? '(showing latest 10)' : ''}
+                </span>
+                ${totalCount > 10 ? `<a href="admin.php?company_id=${selectedCompanyId}" target="_blank" class="btn btn-outline-rbmg btn-sm">View All Posts</a>` : ''}
+            </div>
+        `;
         
         posts.forEach(post => {
             const generatedDate = new Date(post.generated_at);
@@ -664,26 +939,36 @@ function displayBlogPosts(posts, totalCount) {
             
             html += `
                 <div class="blog-post-item">
-                    <div class="blog-post-title">
-                        <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${encodeURIComponent(post.zip_code)}&keyword=${encodeURIComponent(post.keyword)}" target="_blank">
-                            ${escapeHtml(post.title || post.keyword)}
-                        </a>
-                    </div>
-                    <div class="blog-post-meta">
-                        📅 ${formattedDate} • 📍 ZIP ${post.zip_code} • 📝 ${post.word_count} words
-                    </div>
-                    <div class="blog-post-preview">
-                        ${escapeHtml(post.content_preview)}...
+                    <div class="row align-items-start">
+                        <div class="col-md-8">
+                            <div class="blog-post-title">
+                                <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${encodeURIComponent(post.zip_code)}&keyword=${encodeURIComponent(post.keyword)}" target="_blank">
+                                    ${escapeHtml(post.title || post.keyword)}
+                                </a>
+                            </div>
+                            <div class="blog-post-preview text-muted small mt-1">
+                                ${escapeHtml(post.content_preview)}...
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="blog-post-meta">
+                                <div class="d-flex flex-wrap gap-1 justify-content-md-end">
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-calendar3 me-1"></i>${formattedDate}
+                                    </span>
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-geo-alt me-1"></i>ZIP ${post.zip_code}
+                                    </span>
+                                    <span class="badge badge-rbmg">
+                                        <i class="bi bi-file-text me-1"></i>${post.word_count} words
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
         });
-        
-        html += '</div>';
-        
-        if (totalCount > 10) {
-            html += `<p><a href="admin.php?company_id=${selectedCompanyId}" target="_blank">View all ${totalCount} posts in admin panel →</a></p>`;
-        }
     }
     
     document.getElementById('blogPostsList').innerHTML = html;
@@ -754,9 +1039,9 @@ function showSelectedCompany() {
         return;
     }
     
-    document.getElementById('companySelection').classList.add('hidden');
-    document.getElementById('existingCompanies').classList.add('hidden');
-    document.getElementById('newCompanyForm').classList.add('hidden');
+    document.getElementById('companySelection').classList.add('d-none');
+    document.getElementById('existingCompanies').classList.add('d-none');
+    document.getElementById('newCompanyForm').classList.add('d-none');
     
     document.getElementById('selectedCompanyInfo').innerHTML = `
         <strong>${escapeHtml(selectedCompanyData.company_name)}</strong><br>
@@ -764,8 +1049,8 @@ function showSelectedCompany() {
         🏷️ ${escapeHtml(selectedCompanyData.company_type)}
     `;
     
-    document.getElementById('selectedCompanyDisplay').classList.remove('hidden');
-    document.getElementById('zipSection').classList.remove('hidden');
+    document.getElementById('selectedCompanyDisplay').classList.remove('d-none');
+    document.getElementById('zipSection').classList.remove('d-none');
 }
 
 // Keyword Search Functions
@@ -781,84 +1066,184 @@ function fetchKeywords() {
         return;
     }
 
-    document.getElementById("results").innerHTML = "<p>Loading...</p>";
+    if (!/^\d{5}$/.test(zip)) {
+        alert("Please enter a valid 5-digit ZIP code");
+        return;
+    }
+
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = `
+        <div class="rbmg-card">
+            <div class="card-body text-center py-5">
+                <div class="loading-spinner" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="mt-3 mb-1">Fetching Keywords</h5>
+                <p class="text-muted mb-0">Analyzing HVAC search terms for ZIP ${zip}...</p>
+            </div>
+        </div>
+    `;
 
     fetch("api/get_keywords.php?zip=" + zip)
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                document.getElementById("results").innerHTML = "<p>Error: " + data.error + "</p>";
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Error: ${data.error}
+                    </div>
+                `;
                 return;
             }
 
-            let html = `
-                <h2>Results for ZIP ${data.zip}</h2>
-                <p><strong>${data.keyword_count}</strong> HVAC search terms found</p>
-            `;
-
-            // -------------------------------
-            // TOP 10 RANKED KEYWORDS
-            // -------------------------------
-            html += `<div class="section"><h2>🔥 Top 10 Most Popular Searches</h2>`;
-
-            const top10 = data.ranked_keywords.slice(0, 10);
-            top10.forEach(row => {
-                const encoded = encodeURIComponent(row.keyword);
-                html += `
-                    <div class="rank-box">
-                        <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" target="_blank">
-                            ${row.keyword}
-                        </a>
-                        <span class="rank-score">Score: ${row.score}</span>
-                    </div>
-                `;
-            });
-
-            html += `</div>`;
-
-            // -------------------------------
-            // CATEGORY SECTIONS
-            // -------------------------------
-            const categories = data.categories;
-
-            const categoryNames = {
-                cooling_issues: "❄️ Cooling Issues",
-                heating_issues: "🔥 Heating Issues",
-                heat_pump: "♨️ Heat Pump Problems",
-                noise_smell: "👃 Noises & Smells",
-                leaks_water: "💧 Leaks & Water Problems",
-                repair_intent: "🔧 Repair/Service Intent",
-                troubleshooting: "🛠️ Troubleshooting Searches"
-            };
-
-            html += `<div class="section"><h2>📂 Keyword Categories</h2>`;
-
-            for (const key in categories) {
-                const items = categories[key];
-                if (items.length === 0) continue;
-
-                html += `<h3>${categoryNames[key]}</h3>`;
-
-                items.forEach(kw => {
-                    const encoded = encodeURIComponent(kw);
-                    html += `
-                        <div class="keyword-box">
-                            <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" target="_blank">
-                                ${kw}
-                            </a>
-                        </div>
-                    `;
-                });
-            }
-
-            html += `</div>`;
-
-            document.getElementById("results").innerHTML = html;
-
+            displayKeywordResults(data);
         })
         .catch(err => {
-            document.getElementById("results").innerHTML = "<p>Error fetching data.</p>";
+            resultsDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error fetching data. Please try again.
+                </div>
+            `;
         });
+}
+
+function displayKeywordResults(data) {
+    const resultsDiv = document.getElementById("results");
+    
+    let html = `
+        <div class="rbmg-card mb-4">
+            <div class="rbmg-card-header">
+                <h2><i class="bi bi-graph-up me-2"></i>Keywords for ZIP ${data.zip}</h2>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="bg-light rounded p-3">
+                            <h3 class="text-rbmg-primary mb-1">${data.keyword_count}</h3>
+                            <p class="small text-muted mb-0">Total Keywords Found</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light rounded p-3">
+                            <h3 class="text-rbmg-midnight mb-1">${data.ranked_keywords.length}</h3>
+                            <p class="small text-muted mb-0">Ranked Keywords</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light rounded p-3">
+                            <h3 class="text-success mb-1">${Object.keys(data.categories).length}</h3>
+                            <p class="small text-muted mb-0">Categories</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Top 10 Ranked Keywords
+    html += `
+        <div class="rbmg-card mb-4">
+            <div class="rbmg-card-header">
+                <h3><i class="bi bi-fire me-2"></i>Top 10 Most Popular Searches</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+    `;
+
+    const top10 = data.ranked_keywords.slice(0, 10);
+    top10.forEach((row, index) => {
+        const encoded = encodeURIComponent(row.keyword);
+        html += `
+            <div class="col-lg-6">
+                <div class="keyword-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold text-rbmg-midnight mb-1">
+                                <span class="badge bg-secondary me-2">#${index + 1}</span>
+                                ${row.keyword}
+                            </div>
+                            <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" 
+                               target="_blank" class="btn btn-rbmg-primary btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i>Generate Post
+                            </a>
+                        </div>
+                        <span class="keyword-score">${row.score}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Categories
+    const categories = data.categories;
+    const categoryNames = {
+        cooling_issues: { name: "Cooling Issues", icon: "bi-snow" },
+        heating_issues: { name: "Heating Issues", icon: "bi-fire" },
+        heat_pump: { name: "Heat Pump Problems", icon: "bi-thermometer-half" },
+        noise_smell: { name: "Noises & Smells", icon: "bi-soundwave" },
+        leaks_water: { name: "Leaks & Water Problems", icon: "bi-droplet" },
+        repair_intent: { name: "Repair/Service Intent", icon: "bi-tools" },
+        troubleshooting: { name: "Troubleshooting Searches", icon: "bi-search" }
+    };
+
+    html += `
+        <div class="rbmg-card">
+            <div class="rbmg-card-header">
+                <h3><i class="bi bi-folder me-2"></i>Keyword Categories</h3>
+            </div>
+            <div class="card-body">
+    `;
+
+    for (const key in categories) {
+        const items = categories[key];
+        if (items.length === 0) continue;
+
+        const category = categoryNames[key] || { name: key, icon: "bi-tag" };
+        
+        html += `
+            <div class="mb-4">
+                <h4 class="section-header">
+                    <i class="${category.icon} me-2"></i>${category.name}
+                    <span class="badge bg-secondary ms-2">${items.length}</span>
+                </h4>
+                <div class="row g-2">
+        `;
+
+        items.forEach(kw => {
+            const encoded = encodeURIComponent(kw);
+            html += `
+                <div class="col-lg-4 col-md-6">
+                    <div class="keyword-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-medium text-rbmg-midnight small">${kw}</div>
+                            <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" 
+                               target="_blank" class="btn btn-outline-rbmg btn-sm">
+                                <i class="bi bi-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    }
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    resultsDiv.innerHTML = html;
 }
 
 // Initialize on page load

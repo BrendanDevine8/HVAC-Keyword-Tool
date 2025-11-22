@@ -58,16 +58,73 @@ function getLocationDataForZip($zip) {
 
 $locationData = getLocationDataForZip($zip);
 $localIp = $locationData['ip'];
+$climateZone = $locationData['climate_zone'] ?? 'Mixed';
 
-// Determine season for basic weighting
+// Advanced climate-based prioritization
 $month = (int) date('n'); // 1–12
 $isSummer = in_array($month, [5,6,7,8,9]);   // May–Sept
 $isWinter = in_array($month, [11,12,1,2,3]); // Nov–Mar
+
+// Climate-based weighting factors
+$coolingPriority = 0; // Base cooling weight
+$heatingPriority = 0; // Base heating weight
+
+switch ($climateZone) {
+    case 'Very-Hot-Humid':     // FL, South TX, LA, South AZ
+        $coolingPriority = 40;  // Heavy cooling emphasis year-round
+        $heatingPriority = -10; // Minimal heating needs
+        if ($isSummer) $coolingPriority += 20; // Extra summer boost
+        break;
+        
+    case 'Hot-Humid':          // Most of TX, AR, parts of LA
+        $coolingPriority = 25;
+        $heatingPriority = $isWinter ? 15 : 5;
+        if ($isSummer) $coolingPriority += 15;
+        break;
+        
+    case 'Hot-Dry':            // AZ, NV, CA inland, parts of TX
+        $coolingPriority = 30;
+        $heatingPriority = $isWinter ? 10 : 0;
+        if ($isSummer) $coolingPriority += 20;
+        break;
+        
+    case 'Mixed':              // Mid-Atlantic, parts of South
+    case 'Mixed-Humid':
+        $coolingPriority = $isSummer ? 20 : 5;
+        $heatingPriority = $isWinter ? 20 : 5;
+        break;
+        
+    case 'Mixed-Cold':         // Northeast, parts of Midwest
+        $coolingPriority = $isSummer ? 15 : 0;
+        $heatingPriority = $isWinter ? 25 : 10;
+        break;
+        
+    case 'Cold':               // Northern states, mountain regions
+        $coolingPriority = $isSummer ? 10 : -5;
+        $heatingPriority = $isWinter ? 35 : 15;
+        break;
+        
+    case 'Marine':             // West Coast
+        $coolingPriority = $isSummer ? 10 : 0;
+        $heatingPriority = $isWinter ? 15 : 5;
+        break;
+        
+    default: // 'Mixed' fallback
+        $coolingPriority = $isSummer ? 15 : 5;
+        $heatingPriority = $isWinter ? 15 : 5;
+        break;
+}
 
 /**
  * BASE HVAC PHRASES (core problems)
  */
 $basePhrases = [
+    // Universal HVAC issues
+    "hvac troubleshooting",
+    "hvac repair",
+    "thermostat not working",
+    
+    // AC/Cooling issues (prioritized by climate)
     "ac not working",
     "ac not blowing cold air",
     "ac repair",
@@ -76,35 +133,66 @@ $basePhrases = [
     "ac leaking water",
     "ac frozen",
     "weak airflow ac",
+    "ac not cooling upstairs",
+    "ac running but not cooling",
+    "ac keeps freezing up",
+    "ac short cycling",
+    
+    // Heating issues (prioritized by climate)
     "furnace not heating",
     "furnace repair",
-    "furnace making noise",
+    "furnace making noise", 
     "furnace troubleshooting",
+    "furnace blowing cold air",
+    "furnace keeps shutting off",
+    "no heat coming from vents",
+    
+    // Heat pump (common in mild/hot climates)
     "heat pump not cooling",
     "heat pump not heating",
     "heat pump freezing",
-    "hvac troubleshooting",
-    "hvac repair",
-    "thermostat not working",
+    "heat pump not heating in cold weather",
 ];
 
-// Seasonal emphasis – add more cooling or heating phrases
-if ($isSummer) {
-    $basePhrases = array_merge($basePhrases, [
-        "ac not cooling upstairs",
-        "ac running but not cooling",
-        "ac keeps freezing up",
-        "ac short cycling",
+// Climate-specific phrase emphasis
+$climatePhrases = [];
+
+// Hot climate areas - emphasize cooling
+if (in_array($climateZone, ['Very-Hot-Humid', 'Hot-Humid', 'Hot-Dry'])) {
+    $climatePhrases = array_merge($climatePhrases, [
+        "ac not cold enough",
+        "ac runs all day",
+        "high electric bills ac",
+        "ac compressor problems", 
+        "central air not working",
+        "hvac cooling issues",
+        "ac maintenance",
     ]);
 }
-if ($isWinter) {
-    $basePhrases = array_merge($basePhrases, [
-        "furnace blowing cold air",
-        "furnace keeps shutting off",
-        "no heat coming from vents",
-        "heat pump not heating in cold weather",
+
+// Cold climate areas - emphasize heating  
+if (in_array($climateZone, ['Cold', 'Mixed-Cold'])) {
+    $climatePhrases = array_merge($climatePhrases, [
+        "furnace pilot light",
+        "boiler problems",
+        "radiant heat issues",
+        "heating system maintenance",
+        "furnace filter replacement",
+        "high gas bills heating",
     ]);
 }
+
+// Mixed climates - balance both
+if (in_array($climateZone, ['Mixed', 'Mixed-Humid', 'Marine'])) {
+    $climatePhrases = array_merge($climatePhrases, [
+        "heat pump efficiency",
+        "hvac system replacement", 
+        "seasonal hvac maintenance",
+        "duct cleaning",
+    ]);
+}
+
+$basePhrases = array_merge($basePhrases, $climatePhrases);
 
 /**
  * EXPAND A PHRASE INTO MANY QUERY VARIANTS
@@ -244,12 +332,12 @@ $keywords = array_values(array_unique($rawKeywords));
 $peopleAlsoAsk = array_values(array_unique($peopleAlsoAsk));
 
 /**
- * RANK EACH KEYWORD (TREND + INTENT SCORE)
+ * RANK EACH KEYWORD (TREND + INTENT + CLIMATE SCORE)
  */
 $ranked = [];
 foreach ($keywords as $k) {
     $l = strtolower($k);
-    $score = 50;
+    $score = 50; // Base score
 
     // Urgency / problem indicators
     if (preg_match('/not|won\'t|no |stop|never|can\'t|doesn\'t/', $l)) $score += 20;
@@ -260,25 +348,50 @@ foreach ($keywords as $k) {
     // Symptom intent
     if (preg_match('/smell|noise|leak|water|frozen|freeze|ice/', $l)) $score += 10;
 
-    // AC / cooling vs heating weighting
-    if (preg_match('/ac|air conditioner/', $l)) {
-        $score += 8;
-        if ($isSummer) $score += 10; // more weight in hot months
+    // Climate-based AC/cooling scoring
+    if (preg_match('/ac|air conditioner|cooling|cool|cold air/', $l)) {
+        $score += 8; // Base AC relevance
+        $score += $coolingPriority; // Climate-based boost
     }
-    if (preg_match('/furnace|heater/', $l)) {
-        $score += 8;
-        if ($isWinter) $score += 10; // more weight in cold months
+    
+    // Climate-based heating scoring
+    if (preg_match('/furnace|heater|heating|heat|warm/', $l)) {
+        $score += 8; // Base heating relevance
+        $score += $heatingPriority; // Climate-based boost
     }
-    if (preg_match('/heat pump/', $l)) $score += 8;
+    
+    // Heat pump scoring (good for mixed climates)
+    if (preg_match('/heat pump/', $l)) {
+        $score += 8;
+        // Heat pumps are especially relevant in mild to hot climates
+        if (in_array($climateZone, ['Mixed', 'Mixed-Humid', 'Hot-Humid', 'Marine'])) {
+            $score += 15;
+        }
+    }
 
     // Symptom keywords
-    if (preg_match('/blowing|cold|warm|weak|airflow|turning|starting|short cycling|keeps/', $l)) {
+    if (preg_match('/blowing|turning|starting|short cycling|keeps|compressor/', $l)) {
         $score += 5;
     }
+    
+    // Climate-specific boosts
+    if ($climateZone === 'Very-Hot-Humid' && preg_match('/humid|moisture|mold/', $l)) {
+        $score += 10; // Humidity issues common in very hot humid areas
+    }
+    
+    if (in_array($climateZone, ['Hot-Dry', 'Cold']) && preg_match('/dry|dust|filter/', $l)) {
+        $score += 8; // Dry climate air quality issues
+    }
+
+    // Ensure minimum score (don't go negative)
+    $score = max($score, 5);
 
     $ranked[] = [
         "keyword" => $k,
-        "score"   => $score
+        "score"   => $score,
+        "climate_zone" => $climateZone, // For debugging
+        "cooling_priority" => $coolingPriority,
+        "heating_priority" => $heatingPriority
     ];
 }
 
@@ -366,6 +479,10 @@ $peopleAlsoAskTop = array_slice($peopleAlsoAsk, 0, 20);
 echo json_encode([
     "zip"              => $zip,
     "location_ip_used" => $localIp,
+    "climate_zone"     => $climateZone,
+    "cooling_priority" => $coolingPriority,
+    "heating_priority" => $heatingPriority,
+    "current_season"   => $isSummer ? 'Summer' : ($isWinter ? 'Winter' : 'Spring/Fall'),
     "keyword_count"    => count($keywords),
     "ranked_keywords"  => $ranked,
     "categories"       => $categories,
