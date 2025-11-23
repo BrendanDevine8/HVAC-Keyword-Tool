@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . "/../config.php";
+require_once __DIR__ . "/../location_phrase_generator_fixed.php";
 
 // Set execution timeout and error handling
 ini_set('max_execution_time', 45); // 45 second hard limit
@@ -50,22 +51,77 @@ function getLocationDataForZip($zip) {
         // Fall back to default if database error
     }
     
-    // Default fallback for unknown ZIP codes
-    return [
-        'ip' => '67.191.100.22',
-        'city' => 'Your Local Area', 
-        'county' => 'Your County',
-        'state' => 'Your State',
-        'state_code' => '',
-        'area' => 'your neighborhood',
-        'climate_zone' => 'Mixed',
-        'metro_area' => 'Your Metro Area'
-    ];
+    // ZIP code not found - return null to trigger proper error handling
+    return null;
 }
 
 $locationData = getLocationDataForZip($zip);
+
+// Check if ZIP code was found in database
+if ($locationData === null) {
+    echo json_encode([
+        'error' => "ZIP code {$zip} not found in our database. Please try a major city ZIP code like: 33101 (Miami), 90210 (Beverly Hills), 10001 (New York), 77001 (Houston), or 60601 (Chicago).",
+        'suggestions' => ['33101', '90210', '10001', '77001', '60601', '30301']
+    ]);
+    exit;
+}
+
 $localIp = $locationData['ip'];
 $climateZone = $locationData['climate_zone'] ?? 'Mixed';
+
+// Fallback for empty climate zones based on state patterns
+if (empty($climateZone) || $climateZone === 'NULL') {
+    $stateCode = $locationData['state_code'];
+    switch ($stateCode) {
+        case 'FL':
+        case 'LA':
+        case 'MS':
+        case 'AL':
+            $climateZone = 'Very-Hot-Humid';
+            break;
+        case 'TX':
+        case 'AR':
+        case 'SC':
+        case 'GA':
+            $climateZone = 'Hot-Humid';
+            break;
+        case 'AZ':
+        case 'NV':
+        case 'NM':
+            $climateZone = 'Hot-Dry';
+            break;
+        case 'AK':
+        case 'MT':
+        case 'ND':
+        case 'MN':
+        case 'WI':
+        case 'MI':
+        case 'ME':
+        case 'VT':
+        case 'NH':
+            $climateZone = 'Cold';
+            break;
+        case 'NY':
+        case 'PA':
+        case 'MA':
+        case 'CT':
+        case 'RI':
+        case 'NJ':
+        case 'OH':
+        case 'IN':
+        case 'IL':
+            $climateZone = 'Mixed-Cold';
+            break;
+        case 'WA':
+        case 'OR':
+            $climateZone = 'Marine';
+            break;
+        default:
+            $climateZone = 'Mixed';
+            break;
+    }
+    $warnings[] = "Climate zone was empty for ZIP $zip, used state-based fallback: $climateZone";
+}
 
 // Advanced climate-based prioritization
 $month = (int) date('n'); // 1–12
@@ -280,221 +336,188 @@ $basePhrases = [
     "programmable thermostat savings",
 ];
 
-// Climate-specific phrase emphasis
-$climatePhrases = [];
+// DYNAMIC LOCATION-BASED CORE PHRASES
+// Generate core phrases using the location-aware functions
+$corePhrases = generateLocationSpecificCorePhrases($locationData, $climateZone);
 
-// Very Hot Humid (FL, South TX, LA, South AZ) - Heavy cooling focus
-if ($climateZone === 'Very-Hot-Humid') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "ac not cold enough",
-        "ac runs all day",
-        "ac constantly running",
-        "high electric bills ac",
-        "ac compressor overheating",
-        "ac refrigerant problems",
-        "central air not working",
-        "hvac cooling issues",
-        "ac maintenance summer",
-        "ac coil cleaning",
-        "ac condenser cleaning",
-        "humidity problems indoor",
-        "dehumidifier with ac",
-        "mold in ac unit",
-        "ac mold smell",
-        "ac drain clogged",
-        "ac condensate problems",
-        "swamp cooler vs ac",
-        "ac efficiency hot weather",
-        "ac unit size calculator",
-        "oversized ac problems",
-        "undersized ac unit",
-        "ac zoning hot climate",
-        "ductless ac hot weather",
-        "window ac hot climate",
-        "portable ac effectiveness",
-        "ac insulation hot weather",
-    ]);
+// Add additional location-specific phrases for comprehensive coverage
+$locationSpecificPhrases = generateLocationSpecificPhrases($locationData, $climateZone);
+
+// Ensure we have valid arrays
+if (!is_array($corePhrases)) {
+    $corePhrases = [];
+    $warnings[] = "Core phrases generation failed, using empty array";
 }
 
-// Hot Humid (Most of TX, AR, parts of LA) - Strong cooling, some heating
-if ($climateZone === 'Hot-Humid') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "ac not cold enough",
-        "ac runs all day",
-        "high electric bills summer",
-        "ac compressor problems", 
-        "central air issues",
-        "hvac cooling problems",
-        "ac maintenance hot weather",
-        "humidity control hvac",
-        "dehumidifier problems",
-        "heat pump summer problems",
-        "heat pump vs ac efficiency",
-        "furnace maintenance fall",
-        "heating system check",
-        "dual fuel heat pump",
-        "backup heat problems",
-        "seasonal hvac transition",
-    ]);
+if (!is_array($locationSpecificPhrases)) {
+    $locationSpecificPhrases = [];
+    $warnings[] = "Location phrases generation failed, using empty array";
 }
 
-// Hot Dry (AZ, NV, CA inland, parts of TX) - Cooling focus, dust issues
-if ($climateZone === 'Hot-Dry') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "ac not cooling desert",
-        "ac efficiency dry heat",
-        "evaporative cooler problems",
-        "swamp cooler vs ac",
-        "evaporative cooler repair",
-        "ac dust problems",
-        "air filter replacement frequent",
-        "hvac dust control",
-        "ac coil dirty",
-        "condenser coil cleaning",
-        "ac airflow problems dust",
-        "hvac air purification",
-        "static electricity hvac",
-        "dry air heating problems",
-        "humidifier for dry climate",
-        "heat pump dry climate",
-        "ac refrigerant desert",
-        "high altitude hvac",
-    ]);
+// Climate-specific phrase emphasis using location-aware generation
+$climatePhrases = is_array($locationSpecificPhrases) ? $locationSpecificPhrases : [];
+
+// Add universal climate-specific symptoms and problems
+switch ($climateZone) {
+    case 'Very-Hot-Humid':
+        $climatePhrases = array_merge($climatePhrases, [
+            "ac not cold enough",
+            "ac runs all day",
+            "ac constantly running",
+            "high electric bills ac",
+            "humidity problems indoor",
+            "dehumidifier with ac",
+            "mold in ac unit",
+            "ac drain clogged",
+            "ac condensate problems"
+        ]);
+        break;
+        
+    case 'Hot-Humid':
+        $climatePhrases = array_merge($climatePhrases, [
+            "ac not cold enough",
+            "humidity control hvac",
+            "dehumidifier problems",
+            "heat pump vs ac efficiency",
+            "seasonal hvac transition"
+        ]);
+        break;
+        
+    case 'Hot-Dry':
+        $climatePhrases = array_merge($climatePhrases, [
+            "ac not cooling desert",
+            "evaporative cooler problems",
+            "ac dust problems",
+            "air filter replacement frequent",
+            "ac refrigerant desert"
+        ]);
+        break;
+        
+    case 'Cold':
+        $climatePhrases = array_merge($climatePhrases, [
+            "furnace not heating cold weather",
+            "boiler problems winter",
+            "heat pump cold weather",
+            "frozen heat pump",
+            "heating system safety"
+        ]);
+        break;
+        
+    case 'Mixed-Cold':
+        $climatePhrases = array_merge($climatePhrases, [
+            "heat pump efficiency cold",
+            "dual fuel system problems",
+            "heating cooling transition",
+            "seasonal hvac maintenance"
+        ]);
+        break;
+        
+    case 'Mixed':
+    case 'Mixed-Humid':
+        $climatePhrases = array_merge($climatePhrases, [
+            "heat pump efficiency",
+            "seasonal hvac maintenance",
+            "dual fuel heat pump",
+            "year round hvac maintenance"
+        ]);
+        break;
+        
+    case 'Marine':
+        $climatePhrases = array_merge($climatePhrases, [
+            "heat pump mild climate",
+            "mini split systems",
+            "energy efficient heating",
+            "salt air hvac problems"
+        ]);
+        break;
 }
 
-// Cold climate areas (Northern states, mountain regions) - Heavy heating focus
-if ($climateZone === 'Cold') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "furnace not heating cold weather",
-        "boiler problems winter",
-        "radiant heat not working",
-        "heating system maintenance",
-        "furnace filter replacement winter",
-        "high gas bills heating",
-        "furnace pilot light problems",
-        "boiler pressure problems",
-        "radiator not heating",
-        "baseboard heat problems",
-        "heat pump cold weather",
-        "heat pump auxiliary heat",
-        "backup heating system",
-        "emergency heat problems",
-        "furnace short cycling winter",
-        "frozen heat pump",
-        "ice on heat pump",
-        "heating efficiency cold",
-        "insulation heating problems",
-        "ductwork freezing",
-        "condensation heating ducts",
-        "chimney problems heating",
-        "venting issues furnace",
-        "carbon monoxide heating",
-        "heating system safety",
-    ]);
-}
-
-// Mixed-Cold climate (Northeast, parts of Midwest) - Balanced with heating priority
-if ($climateZone === 'Mixed-Cold') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "seasonal hvac maintenance",
-        "furnace filter replacement",
-        "heat pump efficiency cold",
-        "dual fuel system problems",
-        "heating cooling transition",
-        "fall furnace maintenance",
-        "spring ac maintenance",
-        "ductwork insulation",
-        "hvac zoning system",
-        "programmable thermostat winter",
-        "heating bills high winter",
-        "ac problems humid summer",
-        "dehumidifier summer",
-        "humidifier winter",
-        "indoor air quality winter",
-    ]);
-}
-
-// Mixed climates (Mid-Atlantic, parts of South) - True balance
-if (in_array($climateZone, ['Mixed', 'Mixed-Humid'])) {
-    $climatePhrases = array_merge($climatePhrases, [
-        "heat pump efficiency",
-        "hvac system replacement", 
-        "seasonal hvac maintenance",
-        "duct cleaning",
-        "heat pump vs furnace",
-        "heat pump vs ac",
-        "dual fuel heat pump",
-        "hvac zoning benefits",
-        "year round hvac maintenance",
-        "humidity control system",
-        "indoor air quality",
-        "hvac air filtration",
-        "energy efficient hvac",
-        "hvac cost comparison",
-        "seasonal thermostat settings",
-    ]);
-}
-
-// Marine climate (West Coast) - Mild, minimal heating/cooling
-if ($climateZone === 'Marine') {
-    $climatePhrases = array_merge($climatePhrases, [
-        "heat pump mild climate",
-        "mini split systems",
-        "ductless heating cooling",
-        "ventilation marine climate",
-        "humidity control mild climate",
-        "heat pump maintenance",
-        "energy efficient heating",
-        "radiant floor heating",
-        "hvac mild weather",
-        "air quality coastal",
-        "salt air hvac problems",
-        "corrosion hvac coastal",
-    ]);
-}
-
-// SMART PHRASE PRIORITIZATION - Climate-aware ordering
+// ENHANCED CLIMATE-AWARE PHRASE PRIORITIZATION
 $prioritizedPhrases = [];
 
-// Always include these core high-value phrases
-$corePhrases = [
-    "ac not working",
-    "ac not cooling", 
-    "furnace not working",
-    "heat pump not working",
-    "thermostat not working",
-    "hvac repair",
-    "ac repair",
-    "furnace repair",
-    "hvac not working"
-];
-
-// Add climate-prioritized phrases
+// CLIMATE-SPECIFIC PHRASE WEIGHTING
 foreach ($basePhrases as $phrase) {
     $l = strtolower($phrase);
+    $priority = 0;
     
-    // Cooling phrases get priority in hot climates
-    if (($coolingPriority > 15) && preg_match('/\b(ac|air\s+conditioner|cooling|cool)\b/', $l)) {
-        array_unshift($prioritizedPhrases, $phrase);
+    // HOT-DRY: Heavily prioritize AC and cooling
+    if (in_array($climateZone, ['Hot-Dry', 'Very Hot-Dry'])) {
+        if (preg_match('/\b(ac|air.conditioner|cooling|evaporative|desert)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(heat pump)\b/', $l)) {
+            $priority = 30;
+        } elseif (preg_match('/\b(furnace|heating|boiler)\b/', $l)) {
+            $priority = 5;
+        }
     }
-    // Heating phrases get priority in cold climates  
-    elseif (($heatingPriority > 15) && preg_match('/\b(furnace|heater|heating|boiler)\b/', $l)) {
-        array_unshift($prioritizedPhrases, $phrase);
+    // HOT-HUMID: AC + humidity focus
+    elseif (in_array($climateZone, ['Hot-Humid', 'Very Hot-Humid'])) {
+        if (preg_match('/\b(dehumid|humid|mold|moisture)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(ac|air.conditioner|cooling)\b/', $l)) {
+            $priority = 80;
+        } elseif (preg_match('/\b(heat pump)\b/', $l)) {
+            $priority = 40;
+        } elseif (preg_match('/\b(furnace|heating)\b/', $l)) {
+            $priority = 10;
+        }
     }
-    // Heat pump phrases for mixed climates
-    elseif (in_array($climateZone, ['Mixed', 'Mixed-Humid', 'Hot-Humid', 'Marine']) && preg_match('/\bheat\s+pump\b/', $l)) {
-        array_unshift($prioritizedPhrases, $phrase);
+    // COLD: Heavily prioritize heating
+    elseif (in_array($climateZone, ['Cold', 'Very Cold', 'Subarctic'])) {
+        if (preg_match('/\b(furnace|boiler|heating|gas.heat)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(heat pump)\b/', $l)) {
+            $priority = 20;
+        } elseif (preg_match('/\b(ac|cooling|air.conditioner)\b/', $l)) {
+            $priority = 5;
+        }
     }
-    // Everything else goes to the end
-    else {
+    // MIXED-COLD: Heating priority with some cooling
+    elseif ($climateZone === 'Mixed-Cold') {
+        if (preg_match('/\b(heat pump|dual.fuel)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(furnace|heating)\b/', $l)) {
+            $priority = 80;
+        } elseif (preg_match('/\b(ac|cooling)\b/', $l)) {
+            $priority = 30;
+        }
+    }
+    // MIXED: True balance
+    elseif (in_array($climateZone, ['Mixed', 'Mixed-Humid'])) {
+        if (preg_match('/\b(heat pump|seasonal)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(heating|furnace)\b/', $l)) {
+            $priority = 60;
+        } elseif (preg_match('/\b(ac|cooling)\b/', $l)) {
+            $priority = 50;
+        }
+    }
+    // MARINE: Mild climate focus
+    elseif ($climateZone === 'Marine') {
+        if (preg_match('/\b(heat pump|mini.split|ductless)\b/', $l)) {
+            $priority = 100;
+        } elseif (preg_match('/\b(mild|efficient|radiant)\b/', $l)) {
+            $priority = 70;
+        } elseif (preg_match('/\b(ventilation|air.quality)\b/', $l)) {
+            $priority = 60;
+        }
+    }
+    
+    // Add to appropriate priority group
+    if ($priority >= 80) {
+        array_unshift($prioritizedPhrases, $phrase);
+    } elseif ($priority >= 50) {
+        $prioritizedPhrases[] = $phrase;
+    } else {
+        // Lower priority phrases go to end
         $prioritizedPhrases[] = $phrase;
     }
 }
 
-// Add climate-specific phrases
-$prioritizedPhrases = array_merge($prioritizedPhrases, $climatePhrases);
+// Add climate-specific phrases with high priority
+$prioritizedPhrases = array_merge($climatePhrases, $prioritizedPhrases);
 
-// Remove duplicates and ensure core phrases are first
+// Ensure core phrases are at the very top
 $prioritizedPhrases = array_unique(array_merge($corePhrases, $prioritizedPhrases));
 
 // BALANCED: Good coverage without timeouts (was 80, now 25)
@@ -1163,6 +1186,13 @@ echo json_encode([
     "categories"       => $categories,
     "top_trends"       => $topTrends,
     "people_also_ask"  => $peopleAlsoAskTop,
+    "location_data"    => [
+        "city" => $locationData['city'],
+        "state" => $locationData['state'], 
+        "state_code" => $locationData['state_code'],
+        "metro_area" => $locationData['metro_area'],
+        "county" => $locationData['county']
+    ],
     "performance"      => [
         "execution_time_seconds" => $executionTime,
         "api_calls_made" => $apiCallCount,
@@ -1177,6 +1207,8 @@ echo json_encode([
         "errors" => $errors,
         "warnings" => $warnings,
         "memory_usage_mb" => round(memory_get_usage() / 1024 / 1024, 2),
-        "peak_memory_mb" => round(memory_get_peak_usage() / 1024 / 1024, 2)
+        "peak_memory_mb" => round(memory_get_peak_usage() / 1024 / 1024, 2),
+        "core_phrases_count" => count($corePhrases),
+        "location_phrases_count" => count($locationSpecificPhrases)
     ]
 ]);
