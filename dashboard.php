@@ -265,6 +265,72 @@
             font-weight: 600;
         }
 
+        /* Category Section Styling */
+        .category-section {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .category-section:hover {
+            box-shadow: 0 4px 12px rgba(0, 11, 48, 0.1);
+        }
+
+        .category-content {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Enhanced keyword items for categories */
+        .keyword-item.small {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .keyword-item.border-primary {
+            border-color: var(--rbmg-danger) !important;
+            box-shadow: 0 2px 4px rgba(206, 64, 51, 0.1);
+        }
+
+        .keyword-item.border-success {
+            border-color: #198754 !important;
+            box-shadow: 0 2px 4px rgba(25, 135, 84, 0.1);
+        }
+
+        .keyword-item.border-warning {
+            border-color: #fd7e14 !important;
+            box-shadow: 0 2px 4px rgba(253, 126, 20, 0.1);
+        }
+
+        .keyword-item.border-info {
+            border-color: #0dcaf0 !important;
+            box-shadow: 0 2px 4px rgba(13, 202, 240, 0.1);
+        }
+
+        .keyword-item.border-secondary {
+            border-color: #6c757d !important;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.1);
+        }
+
+        .keyword-item.border-danger {
+            border-color: var(--rbmg-danger) !important;
+            box-shadow: 0 2px 4px rgba(206, 64, 51, 0.1);
+        }
+
+        /* Badge variations for different priorities */
+        .badge.bg-success {
+            background: #198754 !important;
+        }
+
+        .badge.bg-warning {
+            background: #fd7e14 !important;
+            color: white !important;
+        }
+
         /* Hide class for Bootstrap compatibility */
         .d-none { display: none !important; }
         .hidden { display: none !important; }
@@ -1110,7 +1176,29 @@ function fetchKeywords() {
 function displayKeywordResults(data) {
     const resultsDiv = document.getElementById("results");
     
-    let html = `
+    // Climate zone and location info
+    let climateInfo = '';
+    if (data.climate_zone) {
+        climateInfo = `
+            <div class="alert alert-info border-0 mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="mb-1">
+                            <i class="bi bi-thermometer me-2"></i>Climate Zone: <strong>${data.climate_zone}</strong>
+                        </h6>
+                        <p class="small mb-0 text-muted">
+                            Cooling Priority: ${data.cooling_priority} | Heating Priority: ${data.heating_priority} | Season: ${data.current_season}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="badge bg-primary px-3 py-2">ZIP ${data.zip}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    let html = climateInfo + `
         <div class="rbmg-card mb-4">
             <div class="rbmg-card-header">
                 <h2><i class="bi bi-graph-up me-2"></i>Keywords for ZIP ${data.zip}</h2>
@@ -1145,6 +1233,7 @@ function displayKeywordResults(data) {
         <div class="rbmg-card mb-4">
             <div class="rbmg-card-header">
                 <h3><i class="bi bi-fire me-2"></i>Top 10 Most Popular Searches</h3>
+                <p class="mb-0 text-light opacity-75">Highest-scoring keywords based on search volume and climate relevance</p>
             </div>
             <div class="card-body">
                 <div class="row g-3">
@@ -1153,13 +1242,16 @@ function displayKeywordResults(data) {
     const top10 = data.ranked_keywords.slice(0, 10);
     top10.forEach((row, index) => {
         const encoded = encodeURIComponent(row.keyword);
+        const isHighScore = row.score >= 80;
+        const badgeClass = isHighScore ? 'bg-success' : (row.score >= 60 ? 'bg-warning' : 'bg-secondary');
+        
         html += `
             <div class="col-lg-6">
-                <div class="keyword-item">
+                <div class="keyword-item ${isHighScore ? 'border-success' : ''}">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                            <div class="fw-semibold text-rbmg-midnight mb-1">
-                                <span class="badge bg-secondary me-2">#${index + 1}</span>
+                            <div class="fw-semibold text-rbmg-midnight mb-2">
+                                <span class="badge ${badgeClass} me-2">#${index + 1}</span>
                                 ${row.keyword}
                             </div>
                             <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" 
@@ -1180,53 +1272,181 @@ function displayKeywordResults(data) {
         </div>
     `;
 
-    // Categories
+    // Categories - Enhanced Organization
     const categories = data.categories;
     const categoryNames = {
-        cooling_issues: { name: "Cooling Issues", icon: "bi-snow" },
-        heating_issues: { name: "Heating Issues", icon: "bi-fire" },
-        heat_pump: { name: "Heat Pump Problems", icon: "bi-thermometer-half" },
-        noise_smell: { name: "Noises & Smells", icon: "bi-soundwave" },
-        leaks_water: { name: "Leaks & Water Problems", icon: "bi-droplet" },
-        repair_intent: { name: "Repair/Service Intent", icon: "bi-tools" },
-        troubleshooting: { name: "Troubleshooting Searches", icon: "bi-search" }
+        cooling_issues: { 
+            name: "Cooling Issues", 
+            icon: "bi-snow", 
+            color: "primary",
+            description: "Air conditioning problems and cooling system failures"
+        },
+        heating_issues: { 
+            name: "Heating Issues", 
+            icon: "bi-fire", 
+            color: "danger",
+            description: "Furnace problems and heating system malfunctions"
+        },
+        heat_pump: { 
+            name: "Heat Pump Problems", 
+            icon: "bi-thermometer-half", 
+            color: "warning",
+            description: "Heat pump cooling and heating issues"
+        },
+        thermostat: { 
+            name: "Thermostat Issues", 
+            icon: "bi-sliders", 
+            color: "info",
+            description: "Thermostat malfunctions and control problems"
+        },
+        noise_smell: { 
+            name: "Noises & Smells", 
+            icon: "bi-soundwave", 
+            color: "secondary",
+            description: "Strange sounds and odors from HVAC systems"
+        },
+        airflow: { 
+            name: "Airflow Problems", 
+            icon: "bi-wind", 
+            color: "success",
+            description: "Weak airflow and ventilation issues"
+        },
+        leaks: { 
+            name: "Leaks & Water Problems", 
+            icon: "bi-droplet", 
+            color: "info",
+            description: "Water leaks and moisture issues"
+        },
+        electrical: { 
+            name: "Electrical Issues", 
+            icon: "bi-lightning", 
+            color: "warning",
+            description: "Power and electrical component problems"
+        },
+        efficiency: { 
+            name: "Energy Efficiency", 
+            icon: "bi-speedometer2", 
+            color: "success",
+            description: "High energy bills and efficiency concerns"
+        },
+        repair: { 
+            name: "Repair & Service", 
+            icon: "bi-tools", 
+            color: "primary",
+            description: "General repair and maintenance services"
+        },
+        troubleshooting: { 
+            name: "Troubleshooting", 
+            icon: "bi-search", 
+            color: "secondary",
+            description: "DIY troubleshooting and diagnostic queries"
+        }
     };
 
-    html += `
-        <div class="rbmg-card">
-            <div class="rbmg-card-header">
-                <h3><i class="bi bi-folder me-2"></i>Keyword Categories</h3>
-            </div>
-            <div class="card-body">
-    `;
+    // Filter and sort categories by relevance
+    const sortedCategories = Object.entries(categories)
+        .filter(([key, items]) => items.length > 0)
+        .sort((a, b) => b[1].length - a[1].length); // Sort by number of keywords
 
-    for (const key in categories) {
-        const items = categories[key];
-        if (items.length === 0) continue;
-
-        const category = categoryNames[key] || { name: key, icon: "bi-tag" };
-        
+    if (sortedCategories.length > 0) {
         html += `
-            <div class="mb-4">
-                <h4 class="section-header">
-                    <i class="${category.icon} me-2"></i>${category.name}
-                    <span class="badge bg-secondary ms-2">${items.length}</span>
-                </h4>
-                <div class="row g-2">
+            <div class="rbmg-card">
+                <div class="rbmg-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3><i class="bi bi-grid-3x3-gap me-2"></i>Keyword Categories</h3>
+                            <p class="mb-0 text-light opacity-75">Organized by HVAC problem type (max 150 keywords per category)</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-light btn-sm" onclick="expandAllCategories()">
+                                <i class="bi bi-arrows-expand me-1"></i>Expand All
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" onclick="collapseAllCategories()">
+                                <i class="bi bi-arrows-collapse me-1"></i>Collapse All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
         `;
 
-        items.forEach(kw => {
-            const encoded = encodeURIComponent(kw);
+        sortedCategories.forEach(([key, items]) => {
+            const category = categoryNames[key] || { 
+                name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), 
+                icon: "bi-tag", 
+                color: "secondary",
+                description: "Related HVAC keywords"
+            };
+            
+            // Limit to 150 keywords per category
+            const limitedItems = items.slice(0, 150);
+            const hasMore = items.length > 150;
+            
             html += `
-                <div class="col-lg-4 col-md-6">
-                    <div class="keyword-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-medium text-rbmg-midnight small">${kw}</div>
-                            <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" 
-                               target="_blank" class="btn btn-outline-rbmg btn-sm">
-                                <i class="bi bi-plus"></i>
-                            </a>
+                <div class="category-section mb-5" id="category-${key}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4 class="section-header mb-1">
+                                <i class="${category.icon} text-${category.color} me-2"></i>
+                                ${category.name}
+                                <span class="badge bg-${category.color} ms-2">${limitedItems.length}${hasMore ? '+' : ''}</span>
+                            </h4>
+                            <p class="text-muted small mb-0">${category.description}</p>
                         </div>
+                        <button class="btn btn-outline-${category.color} btn-sm" onclick="toggleCategory('${key}')">
+                            <i class="bi bi-chevron-down" id="toggle-icon-${key}"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="category-content" id="content-${key}" style="display: none;">
+                        <div class="row g-2">
+            `;
+
+            limitedItems.forEach((kw, index) => {
+                const encoded = encodeURIComponent(kw);
+                const isHighPriority = index < 5; // First 5 are high priority
+                const isMediumPriority = index >= 5 && index < 15; // Next 10 are medium priority
+                
+                let priorityIndicator = '';
+                let borderClass = '';
+                
+                if (isHighPriority) {
+                    priorityIndicator = `<i class="bi bi-star-fill text-${category.color} me-1" title="High priority keyword"></i>`;
+                    borderClass = `border-${category.color}`;
+                } else if (isMediumPriority) {
+                    priorityIndicator = `<i class="bi bi-star text-${category.color} me-1 opacity-75" title="Medium priority keyword"></i>`;
+                }
+                
+                html += `
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="keyword-item small ${borderClass}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium text-rbmg-midnight small">
+                                        ${priorityIndicator}
+                                        ${kw}
+                                    </div>
+                                </div>
+                                <a href="api/generate_post.php?company_id=${selectedCompanyId}&zip=${data.zip}&keyword=${encoded}" 
+                                   target="_blank" class="btn btn-outline-${category.color} btn-sm ms-2" title="Generate blog post">
+                                    <i class="bi bi-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                        ${hasMore ? `
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Showing top 150 of ${items.length} keywords in this category
+                                </small>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -1238,11 +1458,6 @@ function displayKeywordResults(data) {
         `;
     }
 
-    html += `
-            </div>
-        </div>
-    `;
-
     resultsDiv.innerHTML = html;
 }
 
@@ -1253,6 +1468,40 @@ document.addEventListener('DOMContentLoaded', function() {
     showCompanySelection();
     addDebugLog('Company selection shown');
 });
+
+// Category toggle function for collapsible keyword sections
+function toggleCategory(categoryKey) {
+    const content = document.getElementById(`content-${categoryKey}`);
+    const icon = document.getElementById(`toggle-icon-${categoryKey}`);
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.className = 'bi bi-chevron-up';
+    } else {
+        content.style.display = 'none';
+        icon.className = 'bi bi-chevron-down';
+    }
+}
+
+// Expand all categories
+function expandAllCategories() {
+    document.querySelectorAll('.category-content').forEach(content => {
+        content.style.display = 'block';
+    });
+    document.querySelectorAll('[id^="toggle-icon-"]').forEach(icon => {
+        icon.className = 'bi bi-chevron-up';
+    });
+}
+
+// Collapse all categories
+function collapseAllCategories() {
+    document.querySelectorAll('.category-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    document.querySelectorAll('[id^="toggle-icon-"]').forEach(icon => {
+        icon.className = 'bi bi-chevron-down';
+    });
+}
 </script>
 
 </body>
