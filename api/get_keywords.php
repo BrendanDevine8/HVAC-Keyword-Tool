@@ -852,6 +852,10 @@ foreach ($basePhrases as $phraseIndex => $phrase) {
             }
         }
     }
+    } catch (Exception $e) {
+        $errors[] = "Error processing phrase '$phrase': " . $e->getMessage();
+        continue;
+    }
 }
 
 // 2) People-Also-Ask style questions (optimized selection)
@@ -949,6 +953,9 @@ if ($elapsedTime < (45 - $timeoutBuffer - 10)) { // Need at least 10 seconds lef
             $peopleAlsoAsk[] = $s;
         }
     }
+    }
+} else {
+    $warnings[] = "Insufficient time for People Also Ask processing";
 }
 
 // Deduplicate everything
