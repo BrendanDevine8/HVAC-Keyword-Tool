@@ -497,8 +497,8 @@ $prioritizedPhrases = array_merge($prioritizedPhrases, $climatePhrases);
 // Remove duplicates and ensure core phrases are first
 $prioritizedPhrases = array_unique(array_merge($corePhrases, $prioritizedPhrases));
 
-// INCREASED: Allow more phrases for robust data (was 60, now 80)
-$basePhrases = array_slice($prioritizedPhrases, 0, 80);
+// BALANCED: Good coverage without timeouts (was 80, now 25)
+$basePhrases = array_slice($prioritizedPhrases, 0, 25);
 
 // Progress tracking
 $totalExpectedCalls = count($basePhrases) * 10; // Rough estimate
