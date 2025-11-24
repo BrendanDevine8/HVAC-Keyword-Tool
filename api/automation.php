@@ -72,6 +72,14 @@ if ($method === 'POST') {
                 clearCompletedQueue($pdo, $input);
                 break;
                 
+            case 'bulk_delete_keywords':
+                bulkDeleteKeywords($pdo, $input);
+                break;
+                
+            case 'bulk_delete_zips':
+                bulkDeleteZips($pdo, $input);
+                break;
+                
             default:
                 echo json_encode(['error' => 'Unknown action: ' . $action]);
                 exit;
@@ -424,5 +432,71 @@ function calculatePostsPerPeriod($frequency, $interval) {
         default:
             return 1;
     }
+}
+
+/**
+ * Bulk delete keywords
+ */
+function bulkDeleteKeywords($pdo, $input) {
+    $keyword_ids = $input['keyword_ids'] ?? [];
+    
+    if (empty($keyword_ids) || !is_array($keyword_ids)) {
+        echo json_encode(['error' => 'No keyword IDs provided']);
+        return;
+    }
+    
+    // Sanitize IDs
+    $keyword_ids = array_map('intval', $keyword_ids);
+    $keyword_ids = array_filter($keyword_ids); // Remove 0 values
+    
+    if (empty($keyword_ids)) {
+        echo json_encode(['error' => 'No valid keyword IDs provided']);
+        return;
+    }
+    
+    $placeholders = str_repeat('?,', count($keyword_ids) - 1) . '?';
+    $stmt = $pdo->prepare("DELETE FROM auto_posting_keywords WHERE id IN ($placeholders)");
+    $stmt->execute($keyword_ids);
+    
+    $deleted_count = $stmt->rowCount();
+    
+    echo json_encode([
+        'success' => true,
+        'message' => "Deleted $deleted_count keyword(s)",
+        'deleted_count' => $deleted_count
+    ]);
+}
+
+/**
+ * Bulk delete ZIP targets
+ */
+function bulkDeleteZips($pdo, $input) {
+    $zip_ids = $input['zip_ids'] ?? [];
+    
+    if (empty($zip_ids) || !is_array($zip_ids)) {
+        echo json_encode(['error' => 'No ZIP target IDs provided']);
+        return;
+    }
+    
+    // Sanitize IDs
+    $zip_ids = array_map('intval', $zip_ids);
+    $zip_ids = array_filter($zip_ids); // Remove 0 values
+    
+    if (empty($zip_ids)) {
+        echo json_encode(['error' => 'No valid ZIP target IDs provided']);
+        return;
+    }
+    
+    $placeholders = str_repeat('?,', count($zip_ids) - 1) . '?';
+    $stmt = $pdo->prepare("DELETE FROM auto_posting_zip_targets WHERE id IN ($placeholders)");
+    $stmt->execute($zip_ids);
+    
+    $deleted_count = $stmt->rowCount();
+    
+    echo json_encode([
+        'success' => true,
+        'message' => "Deleted $deleted_count ZIP target(s)",
+        'deleted_count' => $deleted_count
+    ]);
 }
 ?>

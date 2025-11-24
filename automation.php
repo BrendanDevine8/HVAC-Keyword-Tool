@@ -55,275 +55,599 @@ if ($company_id > 0) {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Tool - Automated Posting</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: auto; }
-        .form-section { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-row { display: flex; gap: 15px; margin: 10px 0; align-items: center; }
-        .form-group { flex: 1; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .btn { padding: 10px 20px; background: #0073e6; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
-        .btn:hover { background: #005bb5; }
-        .btn-secondary { background: #6c757d; }
-        .btn-danger { background: #dc3545; }
-        .btn-success { background: #28a745; }
-        .btn-small { padding: 5px 10px; font-size: 0.9em; }
-        .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-processing { background: #cce5ff; color: #004085; }
-        .status-completed { background: #d4edda; color: #155724; }
-        .status-failed { background: #f8d7da; color: #721c24; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #dee2e6; }
-        .stat-number { font-size: 1.8em; font-weight: bold; color: #0073e6; }
-        .keyword-item, .zip-item, .queue-item { 
-            background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #dee2e6; 
+        :root {
+            --rbmg-midnight: #000b30;
+            --rbmg-dark-midnight: #00061e;
+            --rbmg-purple: #2d102f;
+            --rbmg-purple-tint: #57165b;
+            --rbmg-danger: #ce4033;
+            --rbmg-light: #f1f2f2;
+            --rbmg-gradient: linear-gradient(60deg, #000b30 10%, #2d102f 25%, #6f2c23 50%, #ce4033 85%);
         }
-        .priority-high { border-left: 4px solid #28a745; }
-        .priority-medium { border-left: 4px solid #ffc107; }
-        .priority-low { border-left: 4px solid #6c757d; }
-        .automation-status { display: inline-block; padding: 5px 10px; border-radius: 15px; font-weight: bold; }
-        .automation-enabled { background: #d4edda; color: #155724; }
-        .automation-disabled { background: #f8d7da; color: #721c24; }
-        .schedule-preview { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #fff;
+            color: #000b30;
+        }
+
+        /* RBMG Button Styles */
+        .btn {
+            padding: 0.75rem 1.25rem !important;
+            font-weight: 700;
+            transition-duration: 0.25s;
+            border-radius: 0;
+        }
+        
+        .btn-rbmg-primary {
+            color: #fff;
+            background: #ce4033;
+            border-color: #ce4033;
+        }
+        
+        .btn-rbmg-primary:hover {
+            color: #fff;
+            background: #f64f3f;
+            border-color: #ce4033;
+        }
+
+        .btn-rbmg-secondary {
+            color: #fff;
+            background: #00061e;
+            border-color: #00061e;
+        }
+        
+        .btn-rbmg-secondary:hover {
+            color: #fff;
+            background: #57165b;
+            border-color: #00061e;
+        }
+
+        .btn-outline-rbmg {
+            color: #00061e;
+            background: transparent;
+            border-color: #00061e;
+        }
+        
+        .btn-outline-rbmg:hover {
+            color: #fff;
+            background: #00061e;
+            border-color: #00061e;
+        }
+
+        /* RBMG Header Gradient */
+        .rbmg-header {
+            background: rgb(0,11,48);
+            background: linear-gradient(60deg, rgba(0,11,48,1) 10%, rgba(45,16,47,1) 25%, rgba(111,44,35,1) 50%, rgba(206,64,51,1) 85%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .rbmg-header h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        /* RBMG Card Styles */
+        .rbmg-card {
+            background: white;
+            border: 2px solid #ce4033;
+            border-radius: 0;
+            box-shadow: 0 4px 6px rgba(0, 11, 48, 0.1);
+            transition: transform 0.25s;
+        }
+
+        .rbmg-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .rbmg-card-header {
+            background: linear-gradient(135deg, #000b30, #2d102f);
+            color: white;
+            border-radius: 0;
+            padding: 1rem;
+            border: none;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #ce4033;
+            border-radius: 0;
+            box-shadow: 0 4px 6px rgba(0, 11, 48, 0.1);
+            transition: transform 0.25s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .custom-form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+        .custom-form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        /* Priority badge styling using RBMG colors */
+        .priority-high {
+            border-left: 4px solid #ce4033 !important;
+        }
+        .priority-medium {
+            border-left: 4px solid #f1c332 !important;
+        }
+        .priority-low {
+            border-left: 4px solid #28a745 !important;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background-color: #fef3cd;
+            color: #664d03;
+        }
+        .status-processing {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-completed {
+            background-color: #d1edff;
+            color: #0c63e4;
+        }
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* RBMG Color Classes */
+        .text-danger {
+            color: #ce4033 !important;
+        }
+        .bg-danger {
+            background: #ce4033 !important;
+        }
+        .text-dark {
+            color: #000b30 !important;
+        }
+        .bg-dark {
+            background: #000b30 !important;
+        }
+        .text-purple {
+            color: #2d102f !important;
+        }
+        .bg-purple {
+            background: #2d102f !important;
+        }
+        .text-light {
+            color: #f1f2f2 !important;
+        }
+        .bg-light {
+            background: #f1f2f2 !important;
+        }
+    </style>
     </style>
 </head>
 <body>
-
-<h1>🤖 Automated Blog Posting</h1>
-
-<form method="get">
-    <div class="form-row">
-        <div class="form-group">
-            <label>Select Company:</label>
-            <select name="company_id" onchange="this.form.submit()">
-                <option value="">Choose a company...</option>
-                <?php foreach ($companies as $comp): ?>
-                <option value="<?= $comp['id'] ?>" <?= $comp['id'] == $company_id ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($comp['company_name']) ?> (<?= htmlspecialchars($comp['company_type']) ?>)
-                </option>
-                <?php endforeach; ?>
-            </select>
+    <!-- Header -->
+    <div class="rbmg-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center py-4">
+                <div>
+                    <h1 class="display-5 fw-bold mb-2"><i class="bi bi-robot me-3"></i>Automation Settings</h1>
+                    <p class="lead mb-0">Configure automated blog post generation and scheduling</p>
+                </div>
+                <div class="d-flex gap-3">
+                    <a href="dashboard.php" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-house me-2"></i>Dashboard
+                    </a>
+                    <a href="admin.php" class="btn btn-light btn-lg">
+                        <i class="bi bi-gear me-2"></i>Manage Content
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-</form>
 
-<div>
-    <a href="dashboard.php" class="btn btn-secondary">← Dashboard</a>
-    <a href="admin.php?company_id=<?= $company_id ?>" class="btn btn-secondary">Content Manager</a>
-</div>
+    <!-- Main Content -->
+    <div class="container-fluid px-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Company Selection -->
+            <div class="rbmg-card mb-4">
+                <div class="rbmg-card-header">
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Select Company</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-8">
+                            <select name="company_id" class="form-select" onchange="this.form.submit()">
+                                <option value="0">Select a company...</option>
+                                <?php foreach ($companies as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= $c['id'] == $company_id ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($c['company_name']) ?> (<?= htmlspecialchars($c['company_type']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-rbmg-primary w-100">
+                                <i class="bi bi-search"></i> Load Company
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-<?php if ($company): ?>
+            <?php if ($company): ?>
+            <!-- Company Info Header -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title text-primary">
+                                <i class="bi bi-building-check"></i> <?= htmlspecialchars($company['company_name']) ?>
+                            </h4>
+                            <p class="card-text">
+                                <span class="badge bg-secondary me-2"><?= htmlspecialchars($company['company_type']) ?></span>
+                                <span class="text-muted"><?= htmlspecialchars($company['location']) ?></span>
+                            </p>
+                            <p class="card-text small text-muted mb-0">
+                                <i class="bi bi-clock"></i> <?= htmlspecialchars($company['hours']) ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="d-grid gap-2">
+                        <a href="admin.php?company_id=<?= $company_id ?>" class="btn btn-outline-primary">
+                            <i class="bi bi-gear"></i> Content Manager
+                        </a>
+                        <a href="setup_automation.php?company_id=<?= $company_id ?>" class="btn btn-outline-success">
+                            <i class="bi bi-tools"></i> Setup Automation
+                        </a>
+                    </div>
+                </div>
+            </div>
 
 <!-- Company Overview -->
-<div class="form-section">
-    <h2><?= htmlspecialchars($company['company_name']) ?></h2>
-    <div class="form-row">
-        <div>
-            <strong>Automation Status:</strong> 
-            <span class="automation-status <?= $company['auto_posting_enabled'] ? 'automation-enabled' : 'automation-disabled' ?>">
-                <?= $company['auto_posting_enabled'] ? 'ENABLED' : 'DISABLED' ?>
-            </span>
+<div class="rbmg-card mb-4">
+    <div class="rbmg-card-header">
+        <h4 class="mb-0"><?= htmlspecialchars($company['company_name']) ?> - Automation Status</h4>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <strong class="me-2">Status:</strong> 
+                    <span class="automation-status <?= $company['auto_posting_enabled'] ? 'automation-enabled' : 'automation-disabled' ?>">
+                        <?= $company['auto_posting_enabled'] ? 'ENABLED' : 'DISABLED' ?>
+                    </span>
+                </div>
+            </div>
+            <?php if ($company['auto_posting_enabled']): ?>
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <strong class="me-2">Frequency:</strong> 
+                    <span><?= ucfirst($company['auto_posting_frequency']) ?> 
+                    (every <?= $company['auto_posting_interval'] ?> <?= $company['auto_posting_frequency'] === 'hourly' ? 'hour(s)' : ($company['auto_posting_frequency'] === 'daily' ? 'day(s)' : ($company['auto_posting_frequency'] === 'weekly' ? 'week(s)' : 'month(s)')) ?>)</span>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
-        <?php if ($company['auto_posting_enabled']): ?>
-        <div>
-            <strong>Frequency:</strong> <?= ucfirst($company['auto_posting_frequency']) ?> 
-            (every <?= $company['auto_posting_interval'] ?> <?= $company['auto_posting_frequency'] === 'hourly' ? 'hour(s)' : ($company['auto_posting_frequency'] === 'daily' ? 'day(s)' : ($company['auto_posting_frequency'] === 'weekly' ? 'week(s)' : 'month(s)')) ?>)
+        
+        <?php if ($company['auto_posting_enabled'] && $company['next_auto_post']): ?>
+        <div class="mt-3 p-3 bg-light rounded">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>📅 Next Scheduled Post:</strong><br>
+                    <?= date('F j, Y g:i A', strtotime($company['next_auto_post'])) ?>
+                </div>
+                <?php if ($company['last_auto_post']): ?>
+                <div class="col-md-6">
+                    <strong>Last Post:</strong><br>
+                    <?= date('F j, Y g:i A', strtotime($company['last_auto_post'])) ?>
+                </div>
+                <?php endif; ?>
+            </div>
         </div>
         <?php endif; ?>
     </div>
-    
-    <?php if ($company['auto_posting_enabled'] && $company['next_auto_post']): ?>
-    <div class="schedule-preview">
-        <strong>📅 Next Scheduled Post:</strong> <?= date('F j, Y g:i A', strtotime($company['next_auto_post'])) ?>
-        <?php if ($company['last_auto_post']): ?>
-        <br><strong>Last Post:</strong> <?= date('F j, Y g:i A', strtotime($company['last_auto_post'])) ?>
-        <?php endif; ?>
-    </div>
-    <?php endif; ?>
 </div>
 
 <!-- Statistics -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number"><?= count($keywords) ?></div>
-        <div>Target Keywords</div>
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="stat-card text-center p-4">
+            <div class="stat-number display-4 fw-bold mb-2" style="color: #ce4033;"><?= count($keywords) ?></div>
+            <div class="text-muted">Target Keywords</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number"><?= count($zip_targets) ?></div>
-        <div>ZIP Targets</div>
+    <div class="col-md-3">
+        <div class="stat-card text-center p-4">
+            <div class="stat-number display-4 fw-bold mb-2" style="color: #000b30;"><?= count($zip_targets) ?></div>
+            <div class="text-muted">ZIP Targets</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number"><?= count(array_filter($queue_items, fn($q) => $q['status'] === 'pending')) ?></div>
-        <div>Pending Posts</div>
+    <div class="col-md-3">
+        <div class="stat-card text-center p-4">
+            <div class="stat-number display-4 fw-bold mb-2" style="color: #2d102f;"><?= count(array_filter($queue_items, fn($q) => $q['status'] === 'pending')) ?></div>
+            <div class="text-muted">Pending Posts</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number"><?= count(array_filter($queue_items, fn($q) => $q['status'] === 'completed')) ?></div>
-        <div>Completed Today</div>
+    <div class="col-md-3">
+        <div class="stat-card text-center p-4">
+            <div class="stat-number display-4 fw-bold mb-2" style="color: #57165b;"><?= count(array_filter($queue_items, fn($q) => $q['status'] === 'completed')) ?></div>
+            <div class="text-muted">Completed Today</div>
+        </div>
     </div>
 </div>
 
 <!-- Automation Settings -->
-<div class="form-section">
-    <h3>⚙️ Automation Settings</h3>
-    <form id="automationForm">
-        <input type="hidden" name="company_id" value="<?= $company_id ?>">
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label>Enable Automation:</label>
-                <select name="auto_posting_enabled">
-                    <option value="0" <?= !$company['auto_posting_enabled'] ? 'selected' : '' ?>>Disabled</option>
-                    <option value="1" <?= $company['auto_posting_enabled'] ? 'selected' : '' ?>>Enabled</option>
-                </select>
+<div class="rbmg-card mb-4">
+    <div class="rbmg-card-header">
+        <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Automation Settings</h5>
+    </div>
+    <div class="card-body p-4">
+        <form id="automationForm">
+            <input type="hidden" name="company_id" value="<?= $company_id ?>">
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Enable Automation:</label>
+                    <select name="auto_posting_enabled" class="form-select">
+                        <option value="0" <?= !$company['auto_posting_enabled'] ? 'selected' : '' ?>>Disabled</option>
+                        <option value="1" <?= $company['auto_posting_enabled'] ? 'selected' : '' ?>>Enabled</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Posting Frequency:</label>
+                    <select name="auto_posting_frequency" class="form-select">
+                        <option value="daily" <?= $company['auto_posting_frequency'] === 'daily' ? 'selected' : '' ?>>Daily (once per day)</option>
+                        <option value="weekly" <?= $company['auto_posting_frequency'] === 'weekly' ? 'selected' : '' ?>>Weekly (once per week)</option>
+                        <option value="monthly" <?= $company['auto_posting_frequency'] === 'monthly' ? 'selected' : '' ?>>Monthly (once per month)</option>
+                    </select>
+                    <input type="hidden" name="auto_posting_interval" value="1">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Frequency:</label>
-                <select name="auto_posting_frequency">
-                    <option value="hourly" <?= $company['auto_posting_frequency'] === 'hourly' ? 'selected' : '' ?>>Hourly</option>
-                    <option value="daily" <?= $company['auto_posting_frequency'] === 'daily' ? 'selected' : '' ?>>Daily</option>
-                    <option value="weekly" <?= $company['auto_posting_frequency'] === 'weekly' ? 'selected' : '' ?>>Weekly</option>
-                    <option value="monthly" <?= $company['auto_posting_frequency'] === 'monthly' ? 'selected' : '' ?>>Monthly</option>
-                </select>
+            
+            <div class="mt-4 pt-3 border-top">
+                <button type="button" onclick="saveAutomationSettings()" class="btn btn-rbmg-primary me-2">Save Settings</button>
+                <?php if ($company['auto_posting_enabled']): ?>
+                <button type="button" onclick="generateQueue()" class="btn btn-rbmg-secondary">Generate Queue Now</button>
+                <?php endif; ?>
             </div>
-            <div class="form-group">
-                <label>Interval:</label>
-                <input type="number" name="auto_posting_interval" value="<?= $company['auto_posting_interval'] ?>" min="1" max="24">
-            </div>
-        </div>
-        
-        <button type="button" onclick="saveAutomationSettings()" class="btn">Save Settings</button>
-        <?php if ($company['auto_posting_enabled']): ?>
-        <button type="button" onclick="generateQueue()" class="btn btn-success">Generate Queue Now</button>
-        <?php endif; ?>
-    </form>
+        </form>
+    </div>
 </div>
 
 <!-- Keyword Management -->
-<div class="form-section">
-    <h3>🎯 Target Keywords</h3>
-    <div class="form-row">
-        <div class="form-group">
-            <input type="text" id="newKeyword" placeholder="Enter keyword pattern">
-        </div>
-        <div class="form-group">
-            <select id="keywordType">
-                <option value="include">Include</option>
-                <option value="exclude">Exclude</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <input type="number" id="keywordPriority" placeholder="Priority" value="0" min="0" max="100">
-        </div>
-        <button onclick="addKeyword()" class="btn">Add Keyword</button>
+<div class="rbmg-card mb-4">
+    <div class="rbmg-card-header">
+        <h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Target Keywords</h5>
     </div>
-    
-    <div id="keywordsList">
-        <?php foreach ($keywords as $kw): ?>
-        <div class="keyword-item priority-<?= $kw['priority'] > 50 ? 'high' : ($kw['priority'] > 25 ? 'medium' : 'low') ?>">
-            <div style="display: flex; justify-content: between; align-items: center;">
-                <div style="flex: 1;">
-                    <strong><?= htmlspecialchars($kw['keyword_pattern']) ?></strong>
-                    <span style="margin-left: 10px; color: #666;">
-                        (<?= $kw['keyword_type'] ?>, Priority: <?= $kw['priority'] ?>)
-                    </span>
+    <div class="card-body p-4">
+        <div class="mb-4 pb-4 border-bottom">
+            <h6 class="text-muted mb-3"><i class="bi bi-plus-circle me-2"></i>Add New ZIP Target</h6>
+            <div class="row g-3">"><i class="bi bi-plus-circle me-2"></i>Add New Keyword</h6>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label for="newKeyword" class="form-label fw-bold">Keyword Pattern</label>
+                    <input type="text" id="newKeyword" class="form-control" placeholder="Enter keyword pattern">
                 </div>
-                <button onclick="removeKeyword(<?= $kw['id'] ?>)" class="btn btn-danger btn-small">Remove</button>
+            <div class="col-md-2">
+                <label for="keywordType" class="form-label fw-bold">Type</label>
+                <select id="keywordType" class="form-select">
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="keywordPriority" class="form-label fw-bold">Priority</label>
+                <input type="number" id="keywordPriority" class="form-control" placeholder="0-100" value="0" min="0" max="100">
+                <small class="text-muted">Scale: 0-100 (higher = more important)</small>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button onclick="addKeyword()" class="btn btn-rbmg-primary w-100">Add Keyword</button>
+            </div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted mb-0"><i class="bi bi-list me-2"></i>Current Keywords</h6>
+                <div class="d-flex gap-2">
+                    <button id="selectAllKeywords" class="btn btn-outline-secondary btn-sm">Select All</button>
+                    <button id="deleteSelectedKeywords" class="btn btn-outline-danger btn-sm" disabled>Delete Selected</button>
+                </div>
+            </div>
+            <div id="keywordsList" class="mt-3">
+        <?php foreach ($keywords as $kw): ?>
+            <div class="keyword-item priority-<?= $kw['priority'] > 50 ? 'high' : ($kw['priority'] > 25 ? 'medium' : 'low') ?> mb-3 p-4 border rounded-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-3 keyword-checkbox" value="<?= $kw['id'] ?>">
+                    <div>
+                        <strong><?= htmlspecialchars($kw['keyword_pattern']) ?></strong>
+                        <span class="text-muted ms-2">
+                            (<?= $kw['keyword_type'] ?>, Priority: <?= $kw['priority'] ?>)
+                        </span>
+                    </div>
+                </div>
+                <button onclick="removeKeyword(<?= $kw['id'] ?>)" class="btn btn-outline-danger btn-sm">Remove</button>
             </div>
         </div>
         <?php endforeach; ?>
         
-        <?php if (empty($keywords)): ?>
-        <p style="color: #666; font-style: italic;">No keywords configured. Add keywords above to get started.</p>
-        <?php endif; ?>
+            <?php if (empty($keywords)): ?>
+            <div class="text-center py-5 border rounded-3 bg-light">
+                <i class="bi bi-bullseye text-muted opacity-50" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3 mb-2 fs-5">No keywords configured yet</p>
+                <small class="text-muted">Add keywords above to get started with automation</small>
+            </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
 <!-- ZIP Code Targets -->
-<div class="form-section">
-    <h3>📍 ZIP Code Targets</h3>
-    <div class="form-row">
-        <div class="form-group">
-            <input type="text" id="newZipCode" placeholder="ZIP Code" maxlength="10">
-        </div>
-        <div class="form-group">
-            <input type="number" id="zipPriority" placeholder="Priority" value="0" min="0" max="100">
-        </div>
-        <button onclick="addZipTarget()" class="btn">Add ZIP Target</button>
-        <button onclick="importZipsFromPosts()" class="btn btn-secondary">Import from Existing Posts</button>
+<div class="rbmg-card mb-4">
+    <div class="rbmg-card-header">
+        <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>ZIP Code Targets</h5>
     </div>
-    
-    <div id="zipTargetsList">
-        <?php foreach ($zip_targets as $zip): ?>
-        <div class="zip-item priority-<?= $zip['priority'] > 50 ? 'high' : ($zip['priority'] > 25 ? 'medium' : 'low') ?>">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="flex: 1;">
-                    <strong><?= htmlspecialchars($zip['zip_code']) ?></strong>
-                    <span style="margin-left: 10px; color: #666;">
-                        (Priority: <?= $zip['priority'] ?>, Posts: <?= $zip['posts_generated'] ?>)
-                        <?php if ($zip['last_posted']): ?>
-                        - Last: <?= date('M j', strtotime($zip['last_posted'])) ?>
-                        <?php endif; ?>
-                    </span>
-                </div>
-                <button onclick="removeZipTarget(<?= $zip['id'] ?>)" class="btn btn-danger btn-small">Remove</button>
+    <div class="card-body p-4">
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Add New ZIP Target</h6>
+            <div class="row g-3">
+            <h6 class="text-muted mb-3">Add New Keyword</h6>
+            <div class="row g-3">
+            <div class="col-md-3">
+                <label for="newZipCode" class="form-label fw-bold">ZIP Code</label>
+                <input type="text" id="newZipCode" class="form-control" placeholder="Enter ZIP code" maxlength="10">
+            </div>
+            <div class="col-md-2">
+                <label for="zipPriority" class="form-label fw-bold">Priority</label>
+                <input type="number" id="zipPriority" class="form-control" placeholder="0-100" value="0" min="0" max="100">
+                <small class="text-muted">Scale: 0-100 (higher = more important)</small>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button onclick="addZipTarget()" class="btn btn-rbmg-primary w-100">Add ZIP Target</button>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button onclick="importZipsFromPosts()" class="btn btn-outline-secondary w-100">Import from Existing Posts</button>
+            </div>
             </div>
         </div>
-        <?php endforeach; ?>
         
-        <?php if (empty($zip_targets)): ?>
-        <p style="color: #666; font-style: italic;">No ZIP targets configured. Add ZIP codes above or import from existing posts.</p>
-        <?php endif; ?>
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted mb-0"><i class="bi bi-geo me-2"></i>Current ZIP Targets</h6>
+                <div class="d-flex gap-2">
+                    <button id="selectAllZips" class="btn btn-outline-secondary btn-sm">Select All</button>
+                    <button id="deleteSelectedZips" class="btn btn-outline-danger btn-sm" disabled>Delete Selected</button>
+                </div>
+            </div>
+            <div id="zipTargetsList" class="mt-3">
+            <?php foreach ($zip_targets as $zip): ?>
+            <div class="zip-item priority-<?= $zip['priority'] > 50 ? 'high' : ($zip['priority'] > 25 ? 'medium' : 'low') ?> mb-3 p-4 border rounded-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" class="form-check-input me-3 zip-checkbox" value="<?= $zip['id'] ?>">
+                        <div>
+                            <strong><?= htmlspecialchars($zip['zip_code']) ?></strong>
+                            <span class="text-muted ms-2">
+                                (Priority: <?= $zip['priority'] ?>, Posts: <?= $zip['posts_generated'] ?>)
+                                <?php if ($zip['last_posted']): ?>
+                                - Last: <?= date('M j', strtotime($zip['last_posted'])) ?>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="removeZipTarget(<?= $zip['id'] ?>)" class="btn btn-outline-danger btn-sm">Remove</button>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            
+            <?php if (empty($zip_targets)): ?>
+            <div class="text-center py-5 border rounded-3 bg-light">
+                <i class="bi bi-geo-alt text-muted opacity-50" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3 mb-2 fs-5">No ZIP codes configured yet</p>
+                <small class="text-muted">Add ZIP codes above or import from existing posts</small>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
     </div>
 </div>
 
 <!-- Recent Queue Activity -->
-<div class="form-section">
-    <h3>📋 Recent Queue Activity</h3>
-    <div style="margin-bottom: 10px;">
-        <button onclick="loadQueue()" class="btn btn-secondary btn-small">Refresh</button>
-        <button onclick="clearCompletedQueue()" class="btn btn-danger btn-small">Clear Completed</button>
+<div class="rbmg-card mb-4">
+    <div class="rbmg-card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📋 Recent Queue Activity</h5>
+        <div>
+            <button onclick="loadQueue()" class="btn btn-outline-light btn-sm me-2">Refresh</button>
+            <button onclick="clearCompletedQueue()" class="btn btn-outline-danger btn-sm">Clear Completed</button>
+        </div>
     </div>
-    
-    <div id="queueList">
-        <?php foreach ($queue_items as $item): ?>
-        <div class="queue-item">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="flex: 1;">
-                    <strong><?= htmlspecialchars($item['keyword']) ?></strong> in <?= htmlspecialchars($item['zip_code']) ?>
-                    <br><small>Scheduled: <?= date('M j, Y g:i A', strtotime($item['scheduled_for'])) ?></small>
-                    <?php if ($item['post_title']): ?>
-                    <br><small><em><?= htmlspecialchars($item['post_title']) ?></em></small>
-                    <?php endif; ?>
+    <div class="card-body p-4">
+        <div id="queueList" class="mt-3">
+            <?php foreach ($queue_items as $item): ?>
+            <div class="queue-item mb-3 p-4 border rounded-3 shadow-sm bg-white">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <strong><?= htmlspecialchars($item['keyword']) ?></strong> in <?= htmlspecialchars($item['zip_code']) ?>
+                        <br><small class="text-muted">Scheduled: <?= date('M j, Y g:i A', strtotime($item['scheduled_for'])) ?></small>
+                        <?php if ($item['post_title']): ?>
+                        <br><small class="fst-italic text-secondary"><?= htmlspecialchars($item['post_title']) ?></small>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <span class="status-badge status-<?= $item['status'] ?>">
+                            <?= strtoupper($item['status']) ?>
+                        </span>
+                    </div>
                 </div>
-                <div>
-                    <span class="status-badge status-<?= $item['status'] ?>">
-                        <?= strtoupper($item['status']) ?>
-                    </span>
+                <?php if ($item['error_message']): ?>
+                <div class="mt-2 text-danger small">
+                    <strong>Error:</strong> <?= htmlspecialchars($item['error_message']) ?>
                 </div>
+                <?php endif; ?>
             </div>
-            <?php if ($item['error_message']): ?>
-            <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">
-                Error: <?= htmlspecialchars($item['error_message']) ?>
+            <?php endforeach; ?>
+            
+            <?php if (empty($queue_items)): ?>
+            <div class="text-center py-5 border rounded-3 bg-light">
+                <i class="bi bi-list-check text-muted opacity-50" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3 mb-2 fs-5">No recent queue activity</p>
+                <small class="text-muted">Queue items will appear here when automation is running</small>
             </div>
             <?php endif; ?>
         </div>
-        <?php endforeach; ?>
-        
-        <?php if (empty($queue_items)): ?>
-        <p style="color: #666; font-style: italic;">No recent queue activity.</p>
-        <?php endif; ?>
     </div>
 </div>
 
 <?php else: ?>
-<div class="form-section">
-    <p>Select a company above to configure automated posting.</p>
+<div class="rbmg-card">
+    <div class="card-body text-center p-5">
+        <i class="bi bi-building text-muted mb-3" style="font-size: 3rem;"></i>
+        <p class="mb-0 fs-5">Select a company above to configure automated posting.</p>
+    </div>
 </div>
 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+            </div>
+        </div>
+    </div>
 
 <script>
 const companyId = <?= $company_id ?>;
@@ -574,7 +898,136 @@ function clearCompletedQueue() {
         alert('Error clearing queue: ' + error.message);
     });
 }
+
+// Multi-select functionality for keywords
+document.addEventListener('DOMContentLoaded', function() {
+    // Keyword multi-select
+    const selectAllKeywords = document.getElementById('selectAllKeywords');
+    const deleteSelectedKeywords = document.getElementById('deleteSelectedKeywords');
+    const keywordCheckboxes = () => document.querySelectorAll('.keyword-checkbox');
+    
+    if (selectAllKeywords) {
+        selectAllKeywords.addEventListener('click', function() {
+            const checkboxes = keywordCheckboxes();
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            this.textContent = allChecked ? 'Select All' : 'Deselect All';
+            updateDeleteButton('keyword');
+        });
+    }
+    
+    if (deleteSelectedKeywords) {
+        deleteSelectedKeywords.addEventListener('click', function() {
+            const selected = Array.from(keywordCheckboxes()).filter(cb => cb.checked).map(cb => cb.value);
+            if (selected.length === 0) return;
+            
+            if (!confirm(`Delete ${selected.length} selected keyword(s)?`)) return;
+            
+            fetch('api/automation.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'bulk_delete_keywords',
+                    keyword_ids: selected
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(`Deleted ${selected.length} keyword(s)`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                alert('Error deleting keywords: ' + error.message);
+            });
+        });
+    }
+    
+    // ZIP targets multi-select
+    const selectAllZips = document.getElementById('selectAllZips');
+    const deleteSelectedZips = document.getElementById('deleteSelectedZips');
+    const zipCheckboxes = () => document.querySelectorAll('.zip-checkbox');
+    
+    if (selectAllZips) {
+        selectAllZips.addEventListener('click', function() {
+            const checkboxes = zipCheckboxes();
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            this.textContent = allChecked ? 'Select All' : 'Deselect All';
+            updateDeleteButton('zip');
+        });
+    }
+    
+    if (deleteSelectedZips) {
+        deleteSelectedZips.addEventListener('click', function() {
+            const selected = Array.from(zipCheckboxes()).filter(cb => cb.checked).map(cb => cb.value);
+            if (selected.length === 0) return;
+            
+            if (!confirm(`Delete ${selected.length} selected ZIP target(s)?`)) return;
+            
+            fetch('api/automation.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'bulk_delete_zips',
+                    zip_ids: selected
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(`Deleted ${selected.length} ZIP target(s)`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                alert('Error deleting ZIP targets: ' + error.message);
+            });
+        });
+    }
+    
+    // Event delegation for checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.keyword-checkbox')) {
+            updateDeleteButton('keyword');
+        } else if (e.target.matches('.zip-checkbox')) {
+            updateDeleteButton('zip');
+        }
+    });
+});
+
+function updateDeleteButton(type) {
+    const checkboxes = type === 'keyword' ? document.querySelectorAll('.keyword-checkbox') : document.querySelectorAll('.zip-checkbox');
+    const deleteButton = type === 'keyword' ? document.getElementById('deleteSelectedKeywords') : document.getElementById('deleteSelectedZips');
+    const selectAllButton = type === 'keyword' ? document.getElementById('selectAllKeywords') : document.getElementById('selectAllZips');
+    
+    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const totalCount = checkboxes.length;
+    
+    if (deleteButton) {
+        deleteButton.disabled = selectedCount === 0;
+        deleteButton.textContent = selectedCount > 0 ? `Delete Selected (${selectedCount})` : 'Delete Selected';
+    }
+    
+    if (selectAllButton) {
+        selectAllButton.textContent = selectedCount === totalCount && totalCount > 0 ? 'Deselect All' : 'Select All';
+    }
+}
 </script>
+
+<!-- Bootstrap 5 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
